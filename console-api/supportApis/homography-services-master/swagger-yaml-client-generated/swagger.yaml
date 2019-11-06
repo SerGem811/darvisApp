@@ -1,0 +1,196 @@
+swagger: "2.0"
+info:
+  description: Immersive Data Homography APIs
+  version: 1.0.0
+  title: Immersive Data Homography APIs
+host: localhost:8090
+schemes:
+  - http
+  - https
+produces:
+- application/json
+paths:
+  /api/v1/get_homographyMatrics:
+    post:
+      tags:
+      - GetHomographyMatrics
+      summary: Get Homography matrix
+      description: This endpoint returns a homography matrics which will later be used for point transformation
+      parameters:
+      - in: body
+        name: body
+        description: Position payload
+        required: true
+        schema:
+          $ref: '#/definitions/GetHomographyMatricsBody'
+      responses:
+        200:
+          description: Homography Matrics
+          schema:
+            $ref: '#/definitions/GetHomographyMatricResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/get_transformPoints:
+    post:
+      tags:
+      - GetTransformedPoints
+      summary: Get Transform points
+      description: This endpoint returns lattiude and longitute for a give point on an image.
+      parameters:
+      - in: body
+        name: body
+        description: ask for Geo cords
+        required: true
+        schema:
+          $ref: '#/definitions/GetTransformedPointsBody'
+      responses:
+        200:
+          description: Get Geo coordinates
+          schema:
+            $ref: '#/definitions/GetTransformedPointsResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/get_transformPoint:
+    post:
+      tags:
+        - GetTransformedPoints
+      summary: Get Transform points
+      description: This endpoint returns lattiude and longitute for a give point on an image.
+      parameters:
+        - in: body
+          name: body
+          description: ask for Geo cords
+          required: true
+          schema:
+            $ref: '#/definitions/GetTransformedPointBody'
+      responses:
+        200:
+          description: Get Geo coordinates
+          schema:
+            $ref: '#/definitions/GeoCord'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /v1/health-check:
+    get:
+      tags:
+        - HealthCheck
+      summary: Simple Health Check
+      description: Returns "OK" if its running
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Health Status
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  LatLonPoints:
+    type: array
+    items:
+      $ref: '#/definitions/LatLonPoint'
+  Matrics:
+    type: object
+    properties:
+      a:
+        type: number
+      b:
+        type: number
+      c:
+        type: number
+      d:
+        type: number
+      e:
+        type: number
+      f:
+        type: number
+      g:
+        type: number
+      h:
+        type: number
+  GetHomographyMatricResponse:
+    type: object
+    properties:
+      homography_points:
+        $ref: '#/definitions/Matrics'
+  Point:
+    type: object
+    properties:
+      x:
+        type: number
+      y:
+        type: number
+  GeoCord:
+    type: object
+    properties:
+      lat:
+        type: number
+      long:
+        type: number
+    example:
+      lat: 52.8008281
+      long: 13.7355671
+  Error:
+    type: object
+    properties:
+      type:
+        type: string
+        description: Error type
+      api:
+        type: string
+        description: Api endpoint that causing error
+      error:
+        type: object
+        description: Error name, message, stack
+        properties: {}
+      recieved_headers:
+        type: object
+        description: Api headers
+        properties: {}
+  GetHomographyMatricsBody:
+    type: object
+    properties:
+      points:
+        $ref: '#/definitions/LatLonPoints'
+  GetTransformedPointsBody:
+    type: object
+    properties:
+      homography_points:
+        $ref: '#/definitions/Matrics'
+      points:
+        type: array
+        items:
+          $ref: '#/definitions/Point'
+  GetTransformedPointsResponse:
+    type: object
+    properties:
+      geo_coords:
+        type: array
+        items:
+          $ref: '#/definitions/GeoCord'
+  GetTransformedPointBody:
+    type: object
+    properties:
+      homography_points:
+        $ref: '#/definitions/Matrics'
+      point:
+        $ref: '#/definitions/Point'
+  LatLonPoint:
+    properties:
+      x:
+        type: number
+      y:
+        type: number
+      lat:
+        type: number
+        description: Latitude
+      long:
+        type: number
+        description: Longitude

@@ -1,0 +1,16 @@
+version: '2.3'
+# kill all docker things: 'docker rm -f $(docker ps -a -q)'
+services:
+
+
+  image-api:
+    image: 'ai-healthcare/image-api'
+    build:
+      context: ./microservices
+      dockerfile: imgApi/Dockerfile
+    ports:
+      - 8888:80
+    volumes:
+      - ./mount_directory/producer/:/data/
+    # logging:
+    #   driver: none

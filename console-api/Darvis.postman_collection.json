@@ -1,0 +1,711 @@
+{
+	"info": {
+		"_postman_id": "14174c45-e930-41c3-b6ef-4a5e82961cb2",
+		"name": "Darvis",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Add User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIyMzgzMX0.Hcc_DJRBfH2oK6GBFn04DmgZEdcmE0-BMeSlP9vcbyc",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Usman\",\n\t\"email\": \"Usman@tkxel.com\",\n\t\"password\": \"mypass\",\n\t\"role\": \"5d2d04cc447f4c358d8570bb\",\n\t\"organization\": \"5d2db71ce30fc648c08f91b8\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by Id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIyMzgzMX0.Hcc_DJRBfH2oK6GBFn04DmgZEdcmE0-BMeSlP9vcbyc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"usman\",\n\t\"email\": \"usman@email.com\",\n\t\"password\": \"mypass\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/5d2ce71e28af7228c6d983c4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"5d2ce71e28af7228c6d983c4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIyMzgzMX0.Hcc_DJRBfH2oK6GBFn04DmgZEdcmE0-BMeSlP9vcbyc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authenticate",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"usman@tkxel.com\",\n\t\"password\": \"mypass\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current Logged In user",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIyMzgzMX0.Hcc_DJRBfH2oK6GBFn04DmgZEdcmE0-BMeSlP9vcbyc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Role",
+			"item": [
+				{
+					"name": "Create Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"admin\",\n\t\"key\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/role",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/role",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get one role",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/role/5d2d04cc447f4c358d8570bb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"role",
+								"5d2d04cc447f4c358d8570bb"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "License",
+			"item": [
+				{
+					"name": "Get All License",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/license",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"license"
+							],
+							"query": [
+								{
+									"key": "x-auth-token",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add License",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Darvis_License\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/license",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"license"
+							],
+							"query": [
+								{
+									"key": "x-auth-token",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete License",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/license/5d2d84e6ca9ea343bb13e6f8",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"license",
+								"5d2d84e6ca9ea343bb13e6f8"
+							],
+							"query": [
+								{
+									"key": "x-auth-token",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get License",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Darvis_License\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/license/5d2d8a06700b1a448aff7da4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"license",
+								"5d2d8a06700b1a448aff7da4"
+							],
+							"query": [
+								{
+									"key": "x-auth-token",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate License",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/validateLicense/5d2d9a025d2c244558817552",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"validateLicense",
+								"5d2d9a025d2c244558817552"
+							],
+							"query": [
+								{
+									"key": "x-auth-token",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update License",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"allowedUsers\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/license/5d2d8a06700b1a448aff7da4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"license",
+								"5d2d8a06700b1a448aff7da4"
+							],
+							"query": [
+								{
+									"key": "x-auth-token",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Organization",
+			"item": [
+				{
+					"name": "Get all orgs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/organization",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"organization"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add org",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Tkxel\",\n\t\"site\": \"Tkxel.com\",\n\t\"license\": \"5d2d9a025d2c244558817552\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/organization",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"organization"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Org",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/organization/5d2da33cfebe95483c4b0074",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"organization",
+								"5d2da33cfebe95483c4b0074"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Org",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIzMDYyNX0.MD4VVOa0zRskqUDuq1vXjI6mrZc3OXJtjfrGK358t2E",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"license\": \"5d2d9a025d2c244558817552\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/organization/5d2db71ce30fc648c08f91b8",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"organization",
+								"5d2db71ce30fc648c08f91b8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-auth-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZDJjZGM5MmVhMWFkZjI0MDY3YjczMDkiLCJlbWFpbCI6InVzbWFuQHRreGVsLmNvbSIsIm5hbWUiOiJVc21hbiBUYWhpciIsImlhdCI6MTU2MzIyMzgzMX0.Hcc_DJRBfH2oK6GBFn04DmgZEdcmE0-BMeSlP9vcbyc",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/5d2df9e8f09f714d35e66499",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"5d2df9e8f09f714d35e66499"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

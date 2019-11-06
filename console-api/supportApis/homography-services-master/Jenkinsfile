@@ -1,0 +1,80 @@
+def APP_VERSION = ''
+def BUILD_VERSION = ''
+def CD_PROJECT_NAME = ''
+
+pipeline {
+
+  agent {
+    node {
+      label 'hashplay-us-east-1-build-agent'
+    }
+  }
+
+  stages {
+
+    stage ('Clone') {
+      steps {
+        checkout([$class: 'GitSCM',
+          branches: scm.branches,
+          doGenerateSubmoduleConfigurations: false,
+          extensions: [[$class: 'LocalBranch', localBranch: "**"]],
+          submoduleCfg: [],
+          userRemoteConfigs: [[credentialsId: 'elx-bot-ssh',
+            url: 'git@github.com:HashplayInc/homography-services.git']]
+        ])
+      }
+    }
+
+    stage ('Create Archive') {
+      steps {
+        script {
+          sh './gradlew clean packageDistribution'
+
+          def versionData = readJSON file:'version.json'
+          APP_VERSION = versionData.version
+          echo "Parsed App Version: ${APP_VERSION}"
+          BUILD_VERSION = "${APP_VERSION}-${env.BUILD_NUMBER}"
+
+          if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'release' ) {
+            BUILD_VERSION = "${BUILD_VERSION}-${env.BRANCH_NAME}"
+          }
+
+          echo "Created archive for ${BUILD_VERSION}"
+        }
+      }
+    }
+
+    stage ('Upload Release to GitHub') {
+      steps {
+        script {
+          if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'release' ) {
+            echo "Not currently publishing WIP/branch builds"
+          } else {
+            echo "Uploading release ${BUILD_VERSION} to github"
+            withCredentials([string(credentialsId: 'elx-bot-github-pat', variable: 'TOKEN')]) {
+              sh './gradlew -Ptoken=$TOKEN githubRelease'
+            }
+          }
+        }
+      }
+    }
+
+    stage ('Set CD Version (Master-only') {
+      steps {
+        script {
+          if (env.BRANCH_NAME == 'master' && CD_PROJECT_NAME != "") {
+            echo "Setting version in dynamo for ${CD_PROJECT_NAME} in dynamo to ${BUILD_VERSION}"
+            sh '''
+            aws dynamodb put-item \
+            --region us-east-1 \
+            --table-name cd-pipeline-project-versions \
+            --item '{"AppID": {"S": "'''+CD_PROJECT_NAME+'''"}, "Version": {"S": "'''+BUILD_VERSION+'''"}}'
+            '''
+          } else {
+            echo "Nothing to do with CD on non-master builds"
+          }
+        }
+      }
+    }
+  }
+}
