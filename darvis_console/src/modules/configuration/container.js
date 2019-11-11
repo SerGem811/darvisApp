@@ -98,7 +98,7 @@ const ConfigContainer = ({ history }) => {
                   <Row>
                     <Col md={{ size: 11, offset: 1 }}>
                       <div className='center-item'>
-                        <h4>Please enter a valid license key to continue</h4>
+                        <h5>Please enter a valid license key to continue</h5>
                       </div>
                     </Col>
                   </Row>
@@ -131,15 +131,22 @@ const ConfigContainer = ({ history }) => {
               {(state.step === 1) && (
                 <React.Fragment>
                   <Row>
-                    <Col md={5}>
+                    <Col md={12}>
+                      <div className='center-item'>
+                        <h5>Please enter account information for a site administrator</h5>
+                      </div>
+                    </Col>
+                  </Row>
+                  <Row className='m-t-20'>
+                    <Col md={4}>
                       <h4 style={{ textAlign: 'right' }} className='m-t-3'>Email : </h4>
                     </Col>
-                    <Col md={7}>
+                    <Col md={{size: 7}}>
                       <AvField type='email' name='email' required />
                     </Col>
                   </Row>
                   <Row>
-                    <Col md={5}>
+                    <Col md={4}>
                       <h4 style={{ textAlign: 'right' }} className='m-t-3'>Password : </h4>
                     </Col>
                     <Col md={7}>
@@ -151,7 +158,7 @@ const ConfigContainer = ({ history }) => {
                     </Col>
                   </Row>
                   <Row>
-                    <Col md={5}>
+                    <Col md={4}>
                       <h4 style={{ textAlign: 'right' }} className='m-t-3'>Confirm : </h4>
                     </Col>
                     <Col md={7}>
