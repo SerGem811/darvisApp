@@ -1,3 +1,5 @@
 darvis_console/node_modules
+darvis_console/package-lock.json
 console-api/node_modules
 console-api/public/uploads
+console-api/package-lock.json
