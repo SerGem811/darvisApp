@@ -61,7 +61,7 @@ const AddEditSiteUser = ({ user, site, addUser, editUser, dismiss }) => {
         const levels = [];
         
         if (site) {
-          site.structure.dataObjects[0].levelDetails.map(l => (
+          site.levels.map(l => (
             levels.push({ label: l.name, value: { id: l.id, name: l.name } })
           ));
         }

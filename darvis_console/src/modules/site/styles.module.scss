@@ -32,3 +32,20 @@
   background: transparent;
   text-align: right;
 }
+
+.editButton {
+  color: #4586e7;
+  margin-right: 5px;
+  font-size: 1rem;
+  &:hover {
+    color: #1359c3;
+  }
+}
+
+.trashButton {
+  color: #f35656;
+  font-size: 1rem;
+  &:hover {
+    color: #ff0056
+  }
+}

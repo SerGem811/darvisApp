@@ -12,18 +12,18 @@ const ZoneModal = ({ level, zone, addZone, updateZone, dismiss }) => {
   const planCanvas = useRef(null);
   const [isSaving, setIsSaving] = React.useState(false);
   const [formData, setFormData] = useState({
-    id: undefined,
+    _id: undefined,
     name: '',
-    level_id: undefined,
-    level_path : '/placeholder.png'
+    levelId: undefined,
+    levelPath: '/placeholder.png'
   });
 
   useEffect(() => {
     setFormData({
-      id: zone ? zone.id : undefined,
+      _id: zone ? zone._id : undefined,
       name: zone ? zone.name : '',
-      level_id : level ? level.id : undefined,
-      level_path: level ? ORIGIN + level.plan : '/placeholder.png'
+      levelId: level ? level._id : undefined,
+      levelPath: level ? ORIGIN + level.plan : '/placeholder.png'
     });
   }, [zone, level]);
 
@@ -62,7 +62,7 @@ const ZoneModal = ({ level, zone, addZone, updateZone, dismiss }) => {
   function handleSubmit(event, values) {
     // get canvas div size
     // darvis-plan-div
-    if (planCanvas.current) {
+    if (event && planCanvas.current) {
       const canvasWidth = planCanvas.current.clientWidth;
       const canvasHeight = planCanvas.current.clientHeight;
 
@@ -73,17 +73,17 @@ const ZoneModal = ({ level, zone, addZone, updateZone, dismiss }) => {
       });
 
       const z = {
-        id: formData.id,
+        _id: formData._id,
         name: values.name,
-        level_id: formData.level_id,
+        levelId: formData.levelId,
         points: cpoints,
       };
       const callback = () => {
         setIsSaving(false);
       };
       setIsSaving(true);
-      
-      if (formData.id) {
+
+      if (formData._id) {
         updateZone(z, () => callback(), () => callback());
       } else {
         addZone(z, () => callback(), () => callback());
@@ -120,7 +120,7 @@ const ZoneModal = ({ level, zone, addZone, updateZone, dismiss }) => {
 
             <Container className={styles.points}>
               <Row>
-                <button className={styles.blue} type="button" onClick={() => {}}>
+                <button className={styles.blue} type="button" onClick={() => { }}>
                   <FontAwesomeIcon size="1x" icon="plus-circle" />
                   <span className="pl-1">Put markers on map/plan</span>
                 </button>
@@ -132,13 +132,13 @@ const ZoneModal = ({ level, zone, addZone, updateZone, dismiss }) => {
             <div ref={planCanvas} className={`${styles.plan_height} w-full darvis-border darvis-canvas-wrapper`}>
               {planCanvas.current && points && (
                 <PointCanvas
-                  key={formData.level_id}
+                  key={formData.levelId}
                   points={points} // points for the floor
                   updatePoints={updatePoints} // get updated points from canvas
                   updateZoomRate={updateZoomRate} // get zoom rate from canvas
                   canvasWidth={planCanvas.current.clientWidth} // initial canvas width
                   canvasHeight={planCanvas.current.clientHeight} // initial canvas height
-                  imagePath={formData.level_path} // level image path
+                  imagePath={formData.levelPath} // level image path
                 />
               )}
             </div>
@@ -149,15 +149,15 @@ const ZoneModal = ({ level, zone, addZone, updateZone, dismiss }) => {
         {isSaving ? (
           <Spinner />
         ) : (
-          <React.Fragment>
-            <Button type="submit" className="green-button" size="lg">
-              {zone ? 'Update' : 'Add'} zone
+            <React.Fragment>
+              <Button type="submit" className="green-button" size="lg">
+                {zone ? 'Update' : 'Add'} zone
             </Button>
-            <Button type="button" className="green-button m-l-20" onClick={dismiss} size="lg">
-              Cancel
+              <Button type="button" className="green-button m-l-20" onClick={dismiss} size="lg">
+                Cancel
             </Button>
-          </React.Fragment>
-        )}
+            </React.Fragment>
+          )}
       </ModalFooter>
     </AvForm>
   );

@@ -222,7 +222,7 @@ router.delete('/:id', auth, async (req, res) => {
 router.get('/:id/site', auth, async (req, res) => {
   const { id } = req.params;
   try {
-    const sites = await Site.find({ user: id })
+    const sites = await Site.find({ owner: id })
       .populate('user')
       .populate('organization');
     if (sites){

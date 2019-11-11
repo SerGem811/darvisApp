@@ -85,9 +85,8 @@ export async function updateLevel(siteId, level) {
   const api = new API({
     headers: { contentType: 'multipart/form-data' },
   });
-
   const formData = new FormData();
-  formData.append('level_id', level.id);
+  formData.append('levelId', level._id);
   formData.append('plan', level.plan);
   formData.append('name', level.name);
   formData.append('image', level.image);
@@ -141,13 +140,12 @@ export async function deleteZoneFromLevel(siteId, zoneId, levelId) {
   );
 }
 
-export async function addCameraToSite(siteId, camera, levelId /* , cameraPoints, floorPlanPoints */) {
+export async function addCameraToSite(siteId, camera/* , cameraPoints, floorPlanPoints */) {
   const api = new API();
   return api
     .post(`${SITES}/${siteId}/addCamera`, {
       siteId,
       camera,
-      levelId,
       // cameraPoints,
       // floorPlanPoints
     })
@@ -159,13 +157,12 @@ export async function addCameraToSite(siteId, camera, levelId /* , cameraPoints,
     );
 }
 
-export async function updateCameraToSite(siteId, camera, levelId, cameraPoints, floorPlanPoints, homography) {
+export async function updateCameraToSite(siteId, camera, cameraPoints, floorPlanPoints, homography) {
   const api = new API();
   return api
     .put(`${SITES}/${siteId}/updateCamera`, {
       siteId,
       camera,
-      levelId,
       cameraPoints,
       floorPlanPoints,
       homography,
@@ -178,13 +175,12 @@ export async function updateCameraToSite(siteId, camera, levelId, cameraPoints, 
     );
 }
 
-export async function enableCamera(siteId, cameraId, levelId) {
+export async function enableCamera(siteId, cameraId) {
   const api = new API();
   return api
     .put(`${SITES}/${siteId}/enableCamera`, {
       siteId,
       cameraId,
-      levelId,
     })
     .then(
       res => res.data,
@@ -194,9 +190,9 @@ export async function enableCamera(siteId, cameraId, levelId) {
     );
 }
 
-export async function deleteCameraFromLevel(siteId, cameraId, levelId) {
+export async function deleteCamera(siteId, cameraId) {
   const api = new API();
-  return api.delete(`${SITES}/${siteId}/deleteCamera/${cameraId}`, levelId).then(
+  return api.delete(`${SITES}/${siteId}/deleteCamera`, cameraId).then(
     res => res.data,
     error => {
       throw error;

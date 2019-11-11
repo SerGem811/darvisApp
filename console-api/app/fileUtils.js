@@ -1,11 +1,11 @@
 const fs = require('fs');
-const server_env = false;
+const config = require('../config');
 
 const getPath = () => {
   let path = '';
-  if (server_env) {
-    path = '/home/darvis';
-  } else {
+  if (config.mode === 'server') {
+    path = config.path;
+  } else if(config.mode === 'windows') {
     path = 'd:\\darvis';
   }
   return path;
@@ -14,9 +14,6 @@ const getPath = () => {
 const isFolderExists = async (path, createFolder) => {
   try {
     let p = path;
-    if(!server_env) {
-      p = path.replace('/', '\\');
-    }
     if(await fs.existsSync(p)){
       return true;
     } else {
@@ -52,19 +49,27 @@ exports.saveDW = async (filename, dw) => {
   return true;
 }
 
-exports.deleteLevelFile = async (levelId) => {
-
+exports.deleteFile = async(path) => {
+  try {
+    fs.unlinkSync(path);
+  } catch(err) {
+    console.log(err);
+  }
 }
 
-exports.copyLevelFile = async (origin, target) => {
+// copy image file to the main directory
+exports.copyLevelFile = async (origin, fileName) => {
   let path = getPath();
   // check directory exists and create it
   await isFolderExists(path, true);
   path = path + '/levels';
   await isFolderExists(path, true);
-  const filePath = path + '/' + target;
-  fs.copyFile(origin, filePath, (err) => {
+  fileName = fileName.replace('/uploads', '');
+  fileName = fileName.replace('\\uploads', '');
+  path = path + '/' + fileName;
+  fs.copyFile(origin, path, (err) => {
     if (err) {
+      console.log(err);
     }
   });
 

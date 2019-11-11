@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { saveAs } from 'file-saver';
 
 import {
-  
+  getSitesbyUser as callSite,
   addLevel as addLevelService,
   updateLevel as updateLevelService,
   deleteLevelFromSite,
@@ -12,6 +12,7 @@ import {
   updateZone as updateZoneService,
   deleteZoneFromLevel,
   enableCamera as enableCameraService,
+  updateCameraToSite,
   generateJson,
   restartAI as restartAIService,
   updateSite as updateSiteService,
@@ -25,6 +26,7 @@ import ConfirmationContext from '../../shared/modules/confirmationModal/context'
 import LevelModal from './components/levelModal';
 import ZoneModal from './components/zoneModal';
 import SiteModal from './components/siteModal';
+import CameraLevelModal from './components/cameraLevelModal';
 
 import Card from '../../shared/molecules/card';
 import HrDivider from '../../shared/atoms/hrDivider';
@@ -32,7 +34,7 @@ import LevelField from './components/levelField';
 
 import styles from './styles.module.scss';
 
-const SiteContainer = ({ history }) => {
+const SiteContainer = ({history}) => {
   const { setError } = useContext(ErrorContext);
 
   const [modalState, setModalState] = useState({
@@ -41,28 +43,38 @@ const SiteContainer = ({ history }) => {
     siteName: '',
     visible_level: false,
     visible_zone: false,
-    visible_site: false
+    visible_site: false,
+    visible_assign: false
   });
 
   const toggleLevel = (l) => {
-    setModalState(s => ({
-      ...s,
+    setModalState({
+      ...modalState,
       level: l,
       visible_level: !modalState.visible_level
-    }));
+    });
   };
   const toggleZone = (l, z) => {
-    setModalState(s => ({
-      ...s,
+    setModalState({
+      ...modalState,
       level: l,
       zone: z,
       visible_zone: !modalState.visible_zone
-    }));
+    });
   };
   const toggleSite = (siteName) => {
-    setModalState(s => ({ ...s, siteName: siteName, visible_site: !modalState.visible_site }));
+    setModalState({ 
+      ...modalState, 
+      siteName: siteName, 
+      visible_site: !modalState.visible_site });
+  };
+  const toggleAssign = (l) => {
+    setModalState({
+      ...modalState,
+      level: l,
+      visible_assign: !modalState.visible_assign
+    });
   }
-
   const dismiss = () => {
     setModalState({
       level: {},
@@ -70,15 +82,16 @@ const SiteContainer = ({ history }) => {
       camera: {},
       visible_level: false,
       visible_zone: false,
-      visible_site: false
-    })
+      visible_site: false,
+      visible_assign: false,
+    });
   }
 
   return (
     <DashboardTemplate>
       <SitesContext.Consumer>
         {props => {
-          const { selectedSite, reloadSites, setSelectedSite } = props;
+          const { selectedSite, reloadSites } = props;
           if (!selectedSite) {
             return (
               <Row className='m-t-30'>
@@ -90,9 +103,8 @@ const SiteContainer = ({ history }) => {
               </Row>
             )
           } else {
-            const levels = selectedSite.structure.dataObjects[0].levelDetails;
-            // define functions
-            // add Level
+            const levels = selectedSite.levels;
+            /* level functionalities */
             const addLevel = async (level, cb, errcb) => {
               try {
                 await addLevelService(selectedSite._id, level);
@@ -104,7 +116,6 @@ const SiteContainer = ({ history }) => {
                 setError(e, true);
               }
             }
-            // update Level
             const updateLevel = async (level, cb, errcb) => {
               try {
                 await updateLevelService(selectedSite._id, level);
@@ -116,7 +127,6 @@ const SiteContainer = ({ history }) => {
                 setError(e, true);
               }
             }
-            // delete Level
             const deleteLevel = async (levelId, cb, errcb) => {
               try {
                 await deleteLevelFromSite(selectedSite._id, levelId);
@@ -127,7 +137,7 @@ const SiteContainer = ({ history }) => {
                 setError(e, true);
               }
             }
-            // add zone
+            /* zone functionalities */
             const addZone = async (zone, cb, errcb) => {
               try {
                 await addZoneService(selectedSite._id, zone);
@@ -139,7 +149,6 @@ const SiteContainer = ({ history }) => {
                 setError(e, true);
               }
             }
-            // update zone
             const updateZone = async (zone, cb, errcb) => {
               try {
                 await updateZoneService(selectedSite._id, zone);
@@ -151,7 +160,6 @@ const SiteContainer = ({ history }) => {
                 setError(e, true);
               }
             }
-            // delete zone
             const deleteZone = async (levelId, zoneId, cb, errcb) => {
               try {
                 await deleteZoneFromLevel(selectedSite._id, zoneId, levelId);
@@ -162,19 +170,50 @@ const SiteContainer = ({ history }) => {
                 setError(e, true);
               }
             }
-
-
-            const enableCamera = async (levelId, cameraId, cb, errcb) => {
+            /* attach and detach camera */
+            const attachCameraToLevel = async(levelId, camera, cb, errcb) => {
               try {
-                await enableCameraService(selectedSite._id, cameraId, levelId);
+                camera.levelId = levelId;
+                await updateCameraToSite(selectedSite._id, camera, camera.cameraPoints, camera.floorPlanPoints, camera.homography);
+                if(cb) {cb();}
+                dismiss();
+                let user = localStorage.getItem('user') || {};
+                if(user) {
+                  user = JSON.parse(user);
+                }
+                const site1 = await callSite(user._id);
+                localStorage.setItem('selectedSite', JSON.stringify(site1[0]));
+                history.push(`/console/site/homography/${levelId}/${camera._id}`);
+              } catch(e) {
+                setError(e);
+                if(errcb) {errcb();}
+              }
+            }
+            const detachCameraFromLevel = async( camera, cb, errcb) => {
+              try {
+                camera.levelId = '';
+                await updateCameraToSite(selectedSite._id, camera, camera.cameraPoints, camera.floorPlanPoints, camera.homography);
+                if(cb) {cb();}
+                reloadSites();
+              } catch(e) {
+                setError(e);
+                if(errcb) {errcb();}
+              }
+            }
+            const enableCamera = async ( cameraId, cb, errcb) => {
+              try {
+                await enableCameraService(selectedSite._id, cameraId);
+                if(cb) {cb();}
                 reloadSites();
               } catch (e) {
                 setError(e, true);
+                if(errcb) {errcb();}
               }
             }
-
-
-
+            const editPoint = async (levelId, cameraId) => {
+              history.push(`/console/site/homography/${levelId}/${cameraId}`);
+            }
+            /* site functionalities */
             const exportSite = async () => {
               try {
                 const json = await generateJson(selectedSite._id);
@@ -184,7 +223,6 @@ const SiteContainer = ({ history }) => {
                 setError(e, true);
               }
             }
-
             const restartAI = async () => {
               try {
                 const json = await restartAIService(selectedSite._id);
@@ -194,7 +232,6 @@ const SiteContainer = ({ history }) => {
                 setError(e, true);
               }
             }
-
             const updateSite = async (siteName, cb, errcb) => {
               try {
                 const site = selectedSite;
@@ -208,7 +245,6 @@ const SiteContainer = ({ history }) => {
                 setError(e, true);
               }
             }
-
             return (
               <React.Fragment>
                 <Row>
@@ -232,7 +268,6 @@ const SiteContainer = ({ history }) => {
                             Save and restart AI
                           </Button>
                         </div>
-
                       </Col>
                     </Row>
                     {/* Header for the levels */}
@@ -264,7 +299,7 @@ const SiteContainer = ({ history }) => {
                               {({ setConfirmationModal, resetConfirmationModal, setLoader }) => (
                                 levels.map((lvl, index) => (
                                   <LevelField
-                                    key={lvl.id}
+                                    key={lvl._id}
                                     index={index + 1}
                                     site={selectedSite}
                                     levelDetail={lvl}
@@ -276,7 +311,7 @@ const SiteContainer = ({ history }) => {
                                         item: lvl.name,
                                         callback: () => {
                                           setLoader(true);
-                                          deleteLevel(lvl.id, () => resetConfirmationModal(), () => setLoader(false));
+                                          deleteLevel(lvl._id, () => resetConfirmationModal(), () => setLoader(false));
                                         }
                                       }));
                                     }}
@@ -289,11 +324,14 @@ const SiteContainer = ({ history }) => {
                                         item: z.name,
                                         callback: () => {
                                           setLoader(true);
-                                          deleteZone(selectedSite._id, lvl.id, z.id, () => resetConfirmationModal(), () => setLoader(false));
+                                          deleteZone(lvl._id, z._id, () => resetConfirmationModal(), () => setLoader(false));
                                         }
                                       }));
                                     }}
                                     enableCamera={(levelId, cameraId) => { enableCamera(levelId, cameraId) }}
+                                    editPoint={editPoint}
+                                    attachCamera={() => toggleAssign(lvl)}
+                                    detachCamera={detachCameraFromLevel}
                                   />
                                 ))
                               )}
@@ -369,6 +407,22 @@ const SiteContainer = ({ history }) => {
                     <SiteModal
                       siteName={modalState.siteName}
                       updateSite={updateSite}
+                      dismiss={dismiss}
+                    />
+                  </Modal>
+                )}
+                {modalState.visible_assign && (
+                  <Modal
+                    isOpen={modalState.visible_assign}
+                    toggle={() => {dismiss()}}
+                    style={{maxWidth: '450px'}}
+                    className='darvis-modal-top'
+                  >
+                    <CameraLevelModal
+                      site={selectedSite}
+                      level={modalState.level}
+                      attachCamera={attachCameraToLevel}
+                      detachCamera={detachCameraFromLevel}
                       dismiss={dismiss}
                     />
                   </Modal>

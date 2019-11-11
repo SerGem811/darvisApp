@@ -6,13 +6,15 @@ import Logger from '../../../shared/modules/logger';
 const SiteModal = ({ siteName, updateSite, dismiss }) => {
   const [isSaving, setIsSaving] = React.useState(false);
 
-  function handleSubmit(actions, values) {
-    const callback = () => {
-      setIsSaving(false);
-    };
-    setIsSaving(true);
-    if(siteName !== values.name) {
-      updateSite(values.name, () => callback(), () => callback());
+  function handleSubmit(event, values) {
+    if (event) {
+      const callback = () => {
+        setIsSaving(false);
+      };
+      setIsSaving(true);
+      if (siteName !== values.name) {
+        updateSite(values.name, () => callback(), () => callback());
+      }
     }
   }
   return (

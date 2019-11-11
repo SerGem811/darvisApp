@@ -17,6 +17,7 @@ import {
   faCircle,
   faArrowRight,
   faSplotch,
+  faSyncAlt
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -35,5 +36,6 @@ library.add(
   faPlus,
   faCircle,
   faArrowRight,
-  faSplotch
+  faSplotch,
+  faSyncAlt
 );

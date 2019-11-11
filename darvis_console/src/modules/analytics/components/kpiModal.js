@@ -2,9 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { ModalHeader, ModalBody, ModalFooter, Row, Col, Spinner, Button } from 'reactstrap';
 
-import { getAI } from '../../../shared/services/ai';
 import ErrorContext from '../../../shared/modules/error/context';
-
 
 const KPIModal = ({ kpi, site, addKPI, updateKPI, dismiss }) => {
   // state for the saving modal
@@ -38,27 +36,24 @@ const KPIModal = ({ kpi, site, addKPI, updateKPI, dismiss }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setInitialData(d => ({ ...d, loading: true }));
-        const ais = await getAI();
-        if (!ais) {
-          // ai is not in database
-        }
+        setInitialData({
+          ...initialData,
+          loading: true
+        });
+        debugger;
+        const ai = site.ai ? site.ai : {};
+        
         let zl = [{ label: 'all', value: 'all' }];
         if (site) {
-          site.structure.dataObjects[0].levelDetails.map(l => {
+          site.levels.map(l => {
             zl.push({ label: l.name, value: l.name });
             l.zones.map(z => (zl.push({ label: z.name, value: z.name })));
           });
         }
-        if (ais && ais.length > 0) {
-          setInitialData(d => ({ ...d, ai: ais[0], zl: zl, loading: false }));
-        } else {
-          setInitialData(d => ({ ...d, ai: [], zl: zl, loading: false }));
-        }
-
+        setInitialData({ ...initialData, ai: ai, zl: zl, loading: false });
       } catch (e) {
         setError(e, true);
-        setInitialData(d => ({ ...d, ai: [], zl: [], loading: false }));
+        setInitialData({ ...initialData, ai: [], zl: [], loading: false });
       }
     };
     fetchData();
@@ -151,32 +146,32 @@ const KPIModal = ({ kpi, site, addKPI, updateKPI, dismiss }) => {
       lines: l,
     });
     if (event1Type === 'attribute_change') {
-      setEventValues(d => ({ ...d, event1Values: a }));
+      setEventValues({ ...eventValues, event1Values: a });
     }
     if (event1Type === 'state_change') {
-      setEventValues(d => ({ ...d, event1Values: s }));
+      setEventValues({ ...eventValues, event1Values: s });
     }
     if (event1Type === 'Line_cross') {
-      setEventValues(d => ({ ...d, event1Values: l }));
+      setEventValues({ ...eventValues, event1Values: l });
     }
     if (event2Type === 'attribute_change') {
-      setEventValues(d => ({ ...d, event2Values: a }));
+      setEventValues({ ...eventValues, event2Values: a });
     }
     if (event2Type === 'state_change') {
-      setEventValues(d => ({ ...d, event2Values: s }));
+      setEventValues({ ...eventValues, event2Values: s });
     }
     if (event2Type === 'Line_cross') {
-      setEventValues(d => ({ ...d, event2Values: l }));
+      setEventValues({ ...eventValues, event2Values: l });
     }
   }
   const initialEventType = (event1Type, event2Type) => {
     if (event1Type === 'Area_enter' || event1Type === 'Area_leave') {
-      setEventValues(s => ({ ...s, event1Values: initialData.zl, event1Label: 'Area' }));
-      setFormData(s => ({ ...s, event1Value: 'all' }));
+      setEventValues({ ...eventValues, event1Values: initialData.zl, event1Label: 'Area' });
+      setFormData({ ...formData, event1Value: 'all' });
     }
     if (event2Type === 'Area_enter' || event2Type === 'Area_leave') {
-      setEventValues(s => ({ ...s, event2Values: initialData.zl, event2Label: 'Area' }));
-      setFormData(s => ({ ...s, event1Value: 'all' }));
+      setEventValues({ ...eventValues, event2Values: initialData.zl, event2Label: 'Area' });
+      setFormData({ ...formData, event1Value: 'all' });
     }
   }
   const onObjectChange = (event, value) => {
@@ -249,17 +244,15 @@ const KPIModal = ({ kpi, site, addKPI, updateKPI, dismiss }) => {
   const handleSubmit = (event, values) => {
     const callback = () => {
       setIsSaving(false);
-      dismiss();
     };
     const errCallback = () => {
       setIsSaving(false);
-      dismiss();
     };
     setIsSaving(true);
     let k = generateKPI(values);
     if (kpi) {
       k = {
-        id: kpi.id,
+        _id: kpi._id,
         ...k
       };
       updateKPI(k, callback, errCallback);
@@ -267,6 +260,7 @@ const KPIModal = ({ kpi, site, addKPI, updateKPI, dismiss }) => {
       addKPI(k, callback, errCallback);
     }
   }
+  
   return (
     <React.Fragment>
       {initialData.loading ? (

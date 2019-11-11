@@ -1,5 +1,8 @@
 const uuidv1 = require('uuid/v1');
 const canvas = require('canvas');
+const config = require('../config');
+const { deleteFile, getMainPath } = require('./fileUtils');
+
 function getLowerSiteName(siteName) {
   return siteName.replace(' ', '').toLowerCase();
 }
@@ -10,227 +13,97 @@ function getImageDimensions(file) {
   return { w: i.width, h: i.height };
 }
 
-exports.getDataWorldJson = function (site, ais) {
+exports.getDataWorldJson = function (site) {
   var levels = [];
-  site.structure.dataSources[0].levels.map(item => {
-    var level = {};
-    level.levelId = item.levelId;
-    level.cameras = [],
-      item.cameras.map((cam, index) => {
-        var ai_roi = {
-          p1x: 0,
-          p1y: 0,
-          p2x: 0,
-          p2y: 0,
-          p3x: 0,
-          p3y: 0,
-          p4x: 0,
-          p4y: 0,
-        };
-        if (cam.cameraPoints) {
-          if (cam.cameraPoints.p1.x < 0.5) {
-            ai_roi.p1x = cam.cameraPoints.p1.x - cam.cameraPoints.p1.x * 0.3;
-          } else {
-            ai_roi.p1x = cam.cameraPoints.p1.x + (1 - cam.cameraPoints.p1.x) * 0.3;
-          }
-          if (cam.cameraPoints.p1.y < 0.5) {
-            ai_roi.p1y = cam.cameraPoints.p1.y - cam.cameraPoints.p1.y * 0.3;
-          } else {
-            ai_roi.p1y = cam.cameraPoints.p1.y + (1 - cam.cameraPoints.p1.y) * 0.3;
-          }
-
-          if (cam.cameraPoints.p2.x < 0.5) {
-            ai_roi.p2x = cam.cameraPoints.p2.x - cam.cameraPoints.p2.x * 0.3;
-          } else {
-            ai_roi.p2x = cam.cameraPoints.p2.x + (1 - cam.cameraPoints.p2.x) * 0.3;
-          }
-          if (cam.cameraPoints.p2.y < 0.5) {
-            ai_roi.p2y = cam.cameraPoints.p2.y - cam.cameraPoints.p2.y * 0.3;
-          } else {
-            ai_roi.p2y = cam.cameraPoints.p2.y + (1 - cam.cameraPoints.p2.y) * 0.3;
-          }
-
-          if (cam.cameraPoints.p3.x < 0.5) {
-            ai_roi.p3x = cam.cameraPoints.p3.x - cam.cameraPoints.p3.x * 0.3;
-          } else {
-            ai_roi.p3x = cam.cameraPoints.p3.x + (1 - cam.cameraPoints.p3.x) * 0.3;
-          }
-          if (cam.cameraPoints.p3.y < 0.5) {
-            ai_roi.p3y = cam.cameraPoints.p3.y - cam.cameraPoints.p3.y * 0.3;
-          } else {
-            ai_roi.p3y = cam.cameraPoints.p3.y + (1 - cam.cameraPoints.p3.y) * 0.3;
-          }
-
-          if (cam.cameraPoints.p1.x < 0.5) {
-            ai_roi.p4x = cam.cameraPoints.p4.x - cam.cameraPoints.p4.x * 0.3;
-          } else {
-            ai_roi.p4x = cam.cameraPoints.p4.x + (1 - cam.cameraPoints.p4.x) * 0.3;
-          }
-          if (cam.cameraPoints.p4.y < 0.5) {
-            ai_roi.p4y = cam.cameraPoints.p4.y - cam.cameraPoints.p4.y * 0.3;
-          } else {
-            ai_roi.p4y = cam.cameraPoints.p4.y + (1 - cam.cameraPoints.p4.y) * 0.3;
-          }
-        }
-
-        var camera = {
-          number: index + 1,
-          cameraType: cam.type,
-          name: cam.name,
-          url: cam.url,
-          enabled: cam.isActive,
-          user: cam.username,
-          pass: cam.password,
-          cam_res_x: cam.cam_res_x,
-          cam_res_y: cam.cam_res_y,
-          homography: cam.homography ? [
-            cam.homography.a,
-            cam.homography.b,
-            cam.homography.c,
-            cam.homography.d,
-            cam.homography.e,
-            cam.homography.f,
-            cam.homography.g,
-            cam.homography.h,
-            cam.homography.i,
-          ] : [],
-          src_points: cam.cameraPoints ? {
-            p1x: cam.cameraPoints.p1.x,
-            p1y: cam.cameraPoints.p1.y,
-            p2x: cam.cameraPoints.p2.x,
-            p2y: cam.cameraPoints.p2.y,
-            p3x: cam.cameraPoints.p3.x,
-            p3y: cam.cameraPoints.p3.y,
-            p4x: cam.cameraPoints.p4.x,
-            p4y: cam.cameraPoints.p4.y,
-          } : {},
-          dst_points: cam.floorPlanPoints ? {
-            p1x: cam.floorPlanPoints.p1.x,
-            p1y: cam.floorPlanPoints.p1.y,
-            p2x: cam.floorPlanPoints.p2.x,
-            p2y: cam.floorPlanPoints.p2.y,
-            p3x: cam.floorPlanPoints.p3.x,
-            p3y: cam.floorPlanPoints.p3.y,
-            p4x: cam.floorPlanPoints.p4.x,
-            p4y: cam.floorPlanPoints.p4.y,
-          } : {},
-          ai_roi: cam.cameraPoints ? ai_roi : {},
-        }
-        level.cameras.push(camera);
-      });
-    levels.push(level);
-  });
-
   var levelDetails = [];
-  site.structure.dataObjects[0].levelDetails.map(item => {
+  site.levels.map((item, i) => {
+    var level = {};
     var levelDetail = {};
-    levelDetail.levelId = item.id;
-    levelDetail.name = item.name;
-    levelDetail.level = item.level;
-    levelDetail.plan = '/home/darvis/levels' + item.plan.replace('\\uploads\\', '');
-    levelDetail.zones = [];
-    item.zones.map(zone => {
-      var z = {
-        name: zone.name,
-        p1x: zone.points.p1.x,
-        p1y: zone.points.p1.y,
-        p2x: zone.points.p2.x,
-        p2y: zone.points.p2.y,
-        p3x: zone.points.p3.x,
-        p3y: zone.points.p3.y,
-        p4x: zone.points.p4.x,
-        p4y: zone.points.p4.y,
+    level.levelId = item._id;
+    level.cameras = [];
+    const levelCameras = site.cameras.filter(x => x.levelId === item._id);
+    levelCameras.map((cam, j) => {
+      var camera = {
+        number: j + 1,
+        cameraType: cam.type,
+        name: cam.name,
+        url: cam.url,
+        enabled: cam.isActive,
+        user: cam.user,
+        pass: cam.password,
+        cam_res_x: cam.cam_res_x,
+        cam_res_y: cam.cam_res_y,
+        homography: cam.homography,
+        src_points: cam.cameraPoints,
+        dst_points: cam.floorPlanPoints,
+        ai_roi: cam.ai_roi,
       }
+      level.cameras.push(camera);
+    });
+    levels.push(level);
 
-      levelDetail.zones.push(z);
+    levelDetail.levelId = item._id;
+    levelDetail.name = item.name;
+    levelDetail.level = i + 1;
+    levelDetail.plan = config.path + '/levels/' + item.plan.replace('\\uploads\\', '');
+    levelDetail.zones = [];
+    item.zones.map(z => {
+      var zone = {
+        name: z.name,
+        p1x: z.points.p1.x,
+        p1y: z.points.p1.y,
+        p2x: z.points.p2.x,
+        p2y: z.points.p2.y,
+        p3x: z.points.p3.x,
+        p3y: z.points.p3.y,
+        p4x: z.points.p4.x,
+        p4y: z.points.p4.y,
+      };
+      levelDetail.zones.push(zone);
     });
     levelDetails.push(levelDetail);
   });
-
   var triggers = [];
-  site.structure.dataObjects[3].triggers.map(item => {
+  site.dwInfo.objects[3].triggers.map(item => {
     var trigger = {};
-    trigger.id = item.id
+    trigger.id = item._id
     trigger.name = item.name;
     trigger.condition = item.condition;
     var action = {};
     if (item.action && item.action.type) {
       action.type = item.action.type;
       action.receipient = item.action.receipient;
-      if(action.type === 'publish' || action.type === 'json') {
+      if (action.type === 'publish' || action.type === 'json') {
         var body = {};
         item.action.fields.map(f => {
           body[f.name] = f.value;
         });
         action.body = body;
-      } else if(action.type === 'text' || action.type === 'email') {
+      } else if (action.type === 'text' || action.type === 'email') {
         action.body = item.action.body
       }
     }
     trigger.action = action;
     triggers.push(trigger);
-  })
+  });
+  lowerSiteName = site.dwInfo.name;
 
-  lowerSiteName = site.structure.dataSources[0].name;
   return {
-    dataworldId: site.structure.dataworldId,
+    dataworldId: site.dwInfo._id,
     //version: 3,
     //revision: 5,
     //dwType: site.structure.dwType,
     dataworldName: lowerSiteName,
     site_name: site.name,
-    owner: site.structure.owner,
+    owner: site.owner,
     //darvisType: site.structure.darvisType,
     createdOn: site.created,
-    viewers: site.structure.viewers,
+    viewers: site.dwInfo.viewers,
     dataSources: [
       {
-        name: site.structure.dataSources[0].name,
-        ai: ais,
-        data: [
-          {
-            src: 'id',
-            dst: 'id',
-            use: true,
-            fieldType: 'string'
-          },
-          {
-            src: 'camera_id',
-            dst: 'camera_id',
-            use: true,
-            fieldType: 'string'
-          },
-          {
-            src: 'camera_name',
-            dst: 'camera_name',
-            use: true,
-            fieldType: 'string'
-          },
-          {
-            src: 'frame_timestamp',
-            dst: 'frame_timestamp',
-            use: true,
-            fieldType: 'string'
-          },
-          {
-            src: 'object_type',
-            dst: 'object_type',
-            use: true,
-            fieldType: 'string'
-          },
-          {
-            src: 'loc_x',
-            dst: 'loc_x',
-            use: true,
-            fieldType: 'float'
-          },
-          {
-            src: 'loc_y',
-            dst: 'loc_y',
-            use: true,
-            fieldType: 'float'
-          }
-        ],
+        name: lowerSiteName,
+        ai: site.ai,
+        data: site.data,
         levels: levels,
       }
     ],
@@ -238,16 +111,16 @@ exports.getDataWorldJson = function (site, ais) {
       {
         // level details 
         // object tyep building
-        objectId: site.structure.dataObjects[0].objectId,
-        objType: 'building',
-        levels: site.structure.dataObjects[0].levels,
+        objectId: site.dwInfo.objects[0].objectId,
+        objType: site.dwInfo.objects[0].objType,
+        levels: levelDetails.length,
         levelDetails: levelDetails,
       },
       {
         // mapping
         // datapoint
-        objectId: site.structure.dataObjects[1].objectId,
-        objType: 'datapoint',
+        objectId: site.dwInfo.objects[1].objectId,
+        objType: site.dwInfo.objects[1].objType,
         objParent: site._id,
         objPositioning: 'inOtherObject',
         refreshData: true,
@@ -294,71 +167,40 @@ exports.getDataWorldJson = function (site, ais) {
       },
       {
         // kpi
-        objectId: site.structure.dataObjects[1].objectId,
-        objType: 'kpi',
-        kpis: site.structure.dataObjects[2].kpis,
+        objectId: site.dwInfo.objects[2].objectId,
+        objType: site.dwInfo.objects[2].objType,
+        kpis: site.dwInfo.objects[2].kpis,
       },
       {
         // trigger
-        objectId: 'eda82b6a-6607-4830-be50-3fb2d174975e',
-        objType: 'trigger',
+        objectId: site.dwInfo.objects[3].objectId,
+        objType: site.dwInfo.objects[3].objType,
         triggers: triggers
       }
     ],
-    lookups: [],
-    localTimezone: 'CET'
+    lookups: site.dwInfo.lookups,
+    localTimezone: site.dwInfo.localTimezone
   }
 };
 
-exports.generateDataWorld = function (site, ai) {
-  const lowerSiteName = getLowerSiteName(site.name);
+exports.generateDataWorld = function (site) {
   return ({
-    dataworldId: uuidv1(),
+    _id: uuidv1(),
+    name: getLowerSiteName(site.name),
     version: 3,
     revision: 5,
     dwType: 'darvis',
-    dataworldName: lowerSiteName,
-    owner: site.organization,
     darvisType: 'healthcare',
     createdOn: Date.now,
     viewers: [],
-    dataSources: [
-      {
-        objType: 'east_video',
-        name: lowerSiteName,
-        format: 'json',
-        endpointid: 'hospitalraw',
-        authToken: 'authstring',
-        vmsType: 'none',
-        ai: ai,
-        data: [],
-        levels: [],
-      },
-      {
-        name: 'buildingdetails',
-        format: 'json',
-        endpointId: 'constantendpt',
-        authToken: '',
-        data: [],
-      }
-    ],
-    dataObjects: [
+    objects: [
       {
         objectId: uuidv1(),
         objType: 'building',
-        mappings: [],
-        levels: 0,
-        levelDetails: [],
       },
       {
         objectId: uuidv1(),
         objectType: 'datapoint',
-        objParent: '',
-        objPositioning: 'inOtherObject',
-        refreshData: true,
-        floorUrls: [],
-        name: 'beds',
-        mappings: [],
       },
       {
         objectId: uuidv1(),
@@ -369,7 +211,6 @@ exports.generateDataWorld = function (site, ai) {
         objectId: uuidv1(),
         objType: 'trigger',
         triggers: [],
-        action: {},
       }
     ],
     lookups: [],
@@ -377,50 +218,33 @@ exports.generateDataWorld = function (site, ai) {
   });
 }
 
+// leve functionalities
 exports.addLevelToSite = function (name, vtype, plan, site) {
   // update db after completing this call
   return new Promise((resolve, reject) => {
     if (site) {
-      const { dataObjects, dataSources } = site.structure;
-
-      const allLevels = dataObjects[0];
-      allLevels.levels += 1;
+      const allLevels = site.levels;
       const level = {
-        id: uuidv1(),
-        level: allLevels.levelDetails.length + 1,
+        _id: uuidv1(),
         name,
         scale: 0.0023,
         plan,
         vtype,
+        serviceHours: 'mon-fri/6-19',
         zones: []
       };
-      allLevels.levelDetails.push(level);
-
-      const allCameras = dataSources[0].levels;
-
-      const levelCamera = {
-        levelId: level.id,
-        name: level.name,
-        serviceHours: 'mon-fri/6-16',
-        cameras: []
-      };
-
-      allCameras.push(levelCamera);
-
+      allLevels.push(level);
       resolve(site);
     } else {
       reject('Site cant be null');
     }
   });
 };
-
 exports.updateLevel = function (level, plan, site) {
   // update db after completing this call
   return new Promise((resolve, reject) => {
     if (site) {
-      const { dataObjects, dataSources } = site.structure;
-      const allLevels = dataObjects[0];
-      const selectedLevel = allLevels.levelDetails.find(x => x.id == level.level_id);
+      const selectedLevel = site.levels.find(x => x.id == level._id);
       if (selectedLevel != null) {
         selectedLevel.name = level.name;
         if (plan != "")
@@ -432,36 +256,34 @@ exports.updateLevel = function (level, plan, site) {
     }
   });
 };
-
 exports.deleteLevelFromSite = function (site, levelId) {
   return new Promise((resolve, reject) => {
     if (site && levelId) {
-      const objectLevels = site.structure.dataObjects[0].levelDetails;
-      const selectedLevelIndex = objectLevels.findIndex(x => x.id === levelId);
-      site.structure.dataObjects[0].levelDetails.splice(selectedLevelIndex, 1);
-
-      site.structure.dataObjects[0].levels = site.structure.dataObjects[0].levelDetails.length;
-      const sourceLevels = site.structure.dataSources[0].levels;
-      const levelIndex = sourceLevels.findIndex(x => x.levelId === levelId);
-      site.structure.dataSources[0].levels.splice(levelIndex, 1);
-
+      const levels = site.levels;
+      const index = levels.findIndex(x => x._id === levelId);
+      const level = levels[index];
+      const levelFileName = level.plan.replace('\\uploads\\', '');
+      site.levels.splice(index, 1);
+      // remove image;
+      const path = getMainPath();
+      deleteFile(path + '/levels/' + levelFileName);
+      deleteFile('./public/uploads/' + levelFileName);
       resolve(site);
     } else {
-      reject('Something is null');
+      reject('error');
     }
   });
 };
 
+// zone functionalities
 exports.addZoneToLevel = function (site, zone) {
   return new Promise((resolve, reject) => {
     if (site) {
-      const { dataObjects } = site.structure;
-      const allLevels = dataObjects[0];
-      const selectedLevel = allLevels.levelDetails.find(x => x.id == zone.level_id);
+      const selectedLevel = site.levels.find(x => x._id == zone.levelId);
 
       if (selectedLevel != null) {
         const newZone = {
-          id: uuidv1(),
+          _id: uuidv1(),
           name: zone.name,
           points: zone.points
         };
@@ -477,16 +299,13 @@ exports.addZoneToLevel = function (site, zone) {
     }
   });
 };
-
 exports.updateZone = function (site, zone) {
   return new Promise((resolve, reject) => {
     if (site) {
-      const { dataObjects, dataSources } = site.structure;
-      const allLevels = dataObjects[0];
-      const selectedLevel = allLevels.levelDetails.find(x => x.id == zone.level_id);
+      const selectedLevel = site.levels.find(x => x._id == zone.levelId);
 
       if (selectedLevel != null) {
-        const oldZone = selectedLevel.zones.find(x => x.id == zone.id);
+        const oldZone = selectedLevel.zones.find(x => x._id == zone._id);
         oldZone.name = zone.name;
         oldZone.points = zone.points
       } else {
@@ -499,15 +318,13 @@ exports.updateZone = function (site, zone) {
     }
   });
 };
-
 exports.deleteZone = function (site, zoneId, levelId) {
   return new Promise((resolve, reject) => {
     if (site && zoneId) {
 
-      const levelDetails = site.structure.dataObjects[0].levelDetails;
-      const selectedLevelIndex = levelDetails.find(x => x.id === levelId);
-      const zone = selectedLevelIndex.zones.findIndex(x => x.id === zoneId);
-      selectedLevelIndex.zones.splice(zone, 1);
+      const level = site.levels.find(x => x._id === levelId);
+      const zone = level.zones.findIndex(x => x._id === zoneId);
+      level.zones.splice(zone, 1);
 
       resolve(site);
     } else {
@@ -516,7 +333,41 @@ exports.deleteZone = function (site, zoneId, levelId) {
   });
 };
 
-exports.addCameraToLevel = function (site, camera, levelId, cameraPoints, floorPlanPoints) {
+// AI functionalities
+exports.addAI = function (site, ai) {
+  return new Promise((resolve, reject) => {
+    if (site) {
+      const aiData = {
+        _id: uuidv1(),
+        type: ai.type,
+        version: ai.version,
+        containerURL: ai.containerURL,
+        classes: ai.classes
+      }
+      site.ai.push(aiData);
+      resolve(site);
+    } else {
+      reject('Site cant be null');
+    }
+  });
+};
+// AI data functionalites
+exports.addAIData = function (site, data) {
+  return new Promise((resolve, reject) => {
+    if (site) {
+      if (data && data.length > 0) {
+        data.map(item => {
+          site.data.push(item);
+        })
+      }
+      resolve(site);
+    } else {
+      reject('Site cant be null');
+    }
+  });
+};
+
+exports.addCamera = function (site, camera, cameraPoints, floorPlanPoints) {
   const fs = require('fs');
   const fileName = `${Date.now()}-${camera.name}.png`;
   const filePath = './public/uploads/' + fileName;
@@ -535,18 +386,12 @@ exports.addCameraToLevel = function (site, camera, levelId, cameraPoints, floorP
     });
     camera.image = '/uploads/' + fileName;
 
-
-  } catch {
-
+  } catch (e) {
+    console.log(e);
   }
 
   return new Promise((resolve, reject) => {
-    if (site && camera && levelId /*&& cameraPoints && floorPlanPoints*/) {
-
-      // save camera image to file
-      const sourcelevels = site.structure.dataSources[0].levels;
-      const selectedLevel = sourcelevels.find(x => x.levelId === levelId);
-      //camera.id = uuidv1();
+    if (site && camera /*&& cameraPoints && floorPlanPoints*/) {
       camera.homography = {
         a: 0,
         b: 0,
@@ -561,7 +406,7 @@ exports.addCameraToLevel = function (site, camera, levelId, cameraPoints, floorP
       camera.cameraPoints = cameraPoints;
       camera.floorPlanPoints = floorPlanPoints;
       camera.isActive = true;
-      selectedLevel.cameras.push(camera);
+      site.cameras.push(camera);
       resolve(site);
     } else {
       reject('Something is null');
@@ -569,12 +414,10 @@ exports.addCameraToLevel = function (site, camera, levelId, cameraPoints, floorP
   });
 };
 
-exports.enableCamera = function (site, cameraId, levelId) {
+exports.enableCamera = function (site, cameraId) {
   return new Promise((resolve, reject) => {
-    if (site && cameraId && levelId) {
-      const sourcelevels = site.structure.dataSources[0].levels;
-      const selectedLevel = sourcelevels.find(x => x.levelId === levelId);
-      const selectedCamera = selectedLevel.cameras.find(x => x.id === cameraId);
+    if (site && cameraId) {
+      const selectedCamera = site.cameras.find(x => x._id === cameraId);
       selectedCamera.isActive = !selectedCamera.isActive;
       resolve(site);
     } else {
@@ -583,12 +426,10 @@ exports.enableCamera = function (site, cameraId, levelId) {
   })
 }
 
-exports.updateCameraToLevel = function (site, camera, levelId, cameraPoints, floorPlanPoints, homography) {
+exports.updateCamera = function (site, camera, cameraPoints, floorPlanPoints, homography) {
   const fs = require('fs');
   return new Promise((resolve, reject) => {
-    if (site && camera && camera.id && levelId) {
-      const sourcelevels = site.structure.dataSources[0].levels;
-      const selectedLevel = sourcelevels.find(x => x.levelId === levelId);
+    if (site && camera && camera._id) {
       if (floorPlanPoints) {
         camera.floorPlanPoints = floorPlanPoints;
       }
@@ -597,7 +438,7 @@ exports.updateCameraToLevel = function (site, camera, levelId, cameraPoints, flo
       }
       camera.homography = homography;
 
-      const selectedCamera = selectedLevel.cameras.find(x => x.id === camera.id);
+      const selectedCamera = site.cameras.find(x => x._id === camera._id);
 
       selectedCamera.name = camera.name;
       selectedCamera.url = camera.url;
@@ -606,27 +447,28 @@ exports.updateCameraToLevel = function (site, camera, levelId, cameraPoints, flo
       if (!camera.image.startsWith('/uploads')) {
         // image is changed
         const resolution = getImageDimensions(camera.image);
-        if(resolution) {
+        if (resolution) {
           selectedCamera.cam_res_x = resolution.w;
           selectedCamera.cam_res_y = resolution.h;
         }
         try {
-          fs.writeFile('./public' + selectedCamera.image, camera.image, {encoding: 'base64'}, function(err) {
-            if(err) {
-              selectedCamera.camera = '';
+          fs.writeFile('./public' + selectedCamera.image, camera.image, { encoding: 'base64' }, function (err) {
+            if (err) {
+              selectedCamera.image = '';
               console.log('error');
             } else {
-  
+
             }
           });
-        } catch(e) {
+        } catch (e) {
           console.log(e);
         }
       }
       //selectedCamera.image = camera.image;
       selectedCamera.type = camera.type;
-      selectedCamera.username = camera.username;
-      selectedCamera.password = camera.password;
+      selectedCamera.user = camera.user;
+      selectedCamera.pass = camera.pass;
+      selectedCamera.levelId = camera.levelId;
       if (camera.homography) {
         selectedCamera.homography = camera.homography;
       }
@@ -643,13 +485,13 @@ exports.updateCameraToLevel = function (site, camera, levelId, cameraPoints, flo
   });
 };
 
-exports.deleteCameraToLevel = function (site, cameraId, levelId) {
+exports.deleteCamera = function (site, cameraId) {
   return new Promise((resolve, reject) => {
-    if (site && cameraId && levelId) {
-      const sourceLevels = site.structure.dataSources[0].levels;
-      const selectedLevel = sourceLevels.find(x => x.levelId === levelId);
-      const cameraIndex = selectedLevel.cameras.findIndex(x => x.id === cameraId);
-      selectedLevel.cameras.splice(cameraIndex, 1);
+    if (site && cameraId) {
+      const cameraIndex = site.cameras.findIndex(x => x._id === cameraId);
+      const filePath = site.cameras[cameraIndex].image;
+      site.cameras.splice(cameraIndex, 1);
+      deleteFile('./public' + filePath);
 
       resolve(site);
     } else {
@@ -658,27 +500,26 @@ exports.deleteCameraToLevel = function (site, cameraId, levelId) {
   });
 };
 
+// kpi functionalities
 exports.addKPI = function (site, kpi) {
   return new Promise((resolve, reject) => {
     if (site) {
       let k = kpi;
       k = {
-        id: uuidv1(),
+        _id: uuidv1(),
         ...k
       }
-      site.structure.dataObjects[2].kpis.push(k);
+      site.dwInfo.objects[2].kpis.push(k);
       resolve(site);
     } else {
       reject('Site not found');
     }
   });
 };
-
 exports.updateKPI = function (site, kpi) {
   return new Promise((resolve, reject) => {
     if (site) {
-      const { dataObjects } = site.structure;
-      const k = dataObjects[2].kpis.find(x => x.id === kpi.id);
+      const k = site.dwInfo.objects[2].kpis.find(x => x._id === kpi._id);
       k.name = kpi.name;
       k.interval = kpi.interval;
       k.type = kpi.type;
@@ -709,12 +550,11 @@ exports.updateKPI = function (site, kpi) {
     }
   });
 };
-
 exports.deleteKPI = function (site, kpiId) {
   return new Promise((resolve, reject) => {
     if (site && kpiId) {
-      const kpis = site.structure.dataObjects[2].kpis;
-      const kpiIndex = kpis.findIndex(x => x.id == kpiId);
+      const kpis = site.dwInfo.objects[2].kpis;
+      const kpiIndex = kpis.findIndex(x => x._id == kpiId);
       kpis.splice(kpiIndex, 1);
 
       resolve(site);
@@ -724,22 +564,21 @@ exports.deleteKPI = function (site, kpiId) {
   });
 };
 
+// trigger functionalities
 exports.addTrigger = function (site, trigger) {
   return new Promise((resolve, reject) => {
     if (site) {
-      site.structure.dataObjects[3].triggers.push(trigger);
+      site.dwInfo.objects[3].triggers.push(trigger);
       resolve(site);
     } else {
       reject('Site not found');
     }
   });
 };
-
 exports.updateTrigger = function (site, trigger) {
   return new Promise((resolve, reject) => {
     if (site) {
-      const { dataObjects } = site.structure;
-      const t = dataObjects[3].triggers.find(x => x.id === trigger.id);
+      const t = site.dwInfo.objects[3].triggers.find(x => x._id === trigger._id);
       t.name = trigger.name;
       t.condition = trigger.condition;
       t.action = trigger.action ? trigger.action : {};
@@ -749,12 +588,11 @@ exports.updateTrigger = function (site, trigger) {
     }
   });
 };
-
 exports.deleteTrigger = function (site, triggerId) {
   return new Promise((resolve, reject) => {
     if (site && triggerId) {
-      const triggers = site.structure.dataObjects[3].triggers;
-      const triggerIndex = triggers.findIndex(x => x.id == triggerId);
+      const triggers = site.dwInfo.objects[3].triggers;
+      const triggerIndex = triggers.findIndex(x => x._id == triggerId);
       triggers.splice(triggerIndex, 1);
 
       resolve(site);
@@ -764,3 +602,84 @@ exports.deleteTrigger = function (site, triggerId) {
   });
 };
 
+exports.generateAI = function () {
+  return ({
+    _id: uuidv1(),
+    type: 'healthcare',
+    version: 2.2,
+    containerURL: null,
+    classes: [
+      {
+        "classId": 1,
+        "className": "bed",
+        "attributes": [
+          "clean",
+          "unclean",
+          "occupied"
+        ],
+        "states": [
+          "fixed",
+          "moving"
+        ]
+      },
+      {
+        "classId": 2,
+        "className": "person",
+        "attributes": [
+          "male",
+          "female"
+        ],
+        "states": [
+          "fixed",
+          "moving"
+        ]
+      }
+    ]
+  });
+}
+exports.generateAIData = function () {
+  return ([
+    {
+      "src": "object_id",
+      "dst": "object_id",
+      "use": true,
+      "fieldType": "string"
+    },
+    {
+      "src": "camera_id",
+      "dst": "camera_id",
+      "use": true,
+      "fieldType": "string"
+    },
+    {
+      "src": "camera_name",
+      "dst": "camera_name",
+      "use": true,
+      "fieldType": "string"
+    },
+    {
+      "src": "timestamp",
+      "dst": "timestamp",
+      "use": true,
+      "fieldType": "string"
+    },
+    {
+      "src": "object_type",
+      "dst": "object_type",
+      "use": true,
+      "fieldType": "string"
+    },
+    {
+      "src": "loc_x",
+      "dst": "loc_x",
+      "use": true,
+      "fieldType": "float"
+    },
+    {
+      "src": "loc_y",
+      "dst": "loc_y",
+      "use": true,
+      "fieldType": "float"
+    }
+  ]);
+}

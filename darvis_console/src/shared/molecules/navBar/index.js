@@ -40,6 +40,13 @@ const Navigation = () => {
             </NavLink>
           </NavItem>
         )}
+        {(isOwner() || isManager()) && (
+          <NavItem className="dar-navbar__item">
+            <NavLink to="/console/cameras" activeClassName="link-active">
+              Cameras
+            </NavLink>
+          </NavItem>
+        )}
         {(isOwner() || isManager() || isEditor()) && (
           <NavItem className="dar-navbar__item">
             <NavLink to="/console/analytics" activeClassName="link-active">
@@ -54,13 +61,6 @@ const Navigation = () => {
             </NavLink>
           </NavItem>
         )*/}
-        {(isOwner() || isManager()) && (
-          <NavItem className="dar-navbar__item">
-            <NavLink to="/console/cameras" activeClassName="link-active">
-              Cameras
-            </NavLink>
-          </NavItem>
-        )}
         {(isOwner() || isManager()) && (
           <NavItem className="dar-navbar__item">
             <NavLink to="/console/users" activeClassName="link-active">

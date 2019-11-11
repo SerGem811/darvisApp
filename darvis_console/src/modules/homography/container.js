@@ -13,7 +13,7 @@ const HomographyContainer = props => {
 
   function getLevel() {
     if (props.match.params && props.match.params.levelId) {
-      return site.structure.dataSources[0].levels.find(l => l.levelId === props.match.params.levelId) || {};
+      return site.levels.find(l => l._id === props.match.params.levelId) || {};
     }
     return {};
   }
@@ -21,15 +21,14 @@ const HomographyContainer = props => {
 
   function getLevelDetail() {
     if (props.match.params && props.match.params.levelId) {
-      return site.structure.dataObjects[0].levelDetails.find(l => l.id === props.match.params.levelId) || {};
+      return site.levels.find(l => l._id === props.match.params.levelId) || {};
     }
     return {};
   }
-  const [levelDetail] = useState(getLevelDetail());
-
+  
   function getCamera() {
     if (props.match.params && props.match.params.cameraId) {
-      return level.cameras.find(c => c.id === props.match.params.cameraId) || {};
+      return site.cameras.find(c => c._id === props.match.params.cameraId) || {};
     }
     return {};
   }
@@ -62,8 +61,9 @@ const HomographyContainer = props => {
   function getCamerasPoint() {
     const points = [];
 
-    if (level && level.cameras) {
-      level.cameras.forEach(item => {
+    const cameras = site.cameras.filter(x => x.levelId === level._id);
+    if (cameras) {
+      cameras.forEach(item => {
         if (item.id !== camera.id && item.floorPlanPoints) {
           points.push({ isActive: item.isActive, points: item.floorPlanPoints });
         }
@@ -157,7 +157,7 @@ const HomographyContainer = props => {
         // show error
       } else {
         //homography.homography_points[8] = 1;
-        await updateCameraToSite(siteId, camera, level.levelId, cpoints, fpoints, homography.homography_points);
+        await updateCameraToSite(siteId, camera, cpoints, fpoints, homography.homography_points);
       }
       // redirect
       props.history.goBack();
@@ -170,7 +170,7 @@ const HomographyContainer = props => {
 
   return (
     <DashboardTemplate>
-      {camera && levelDetail && level ? (
+      {camera && level ? (
         <React.Fragment>
           <Row className="m-b-10">
             <Col md={4}>
@@ -194,16 +194,16 @@ const HomographyContainer = props => {
           <Row>
             <Col md={12}>
               <div ref={floorRef} className={`${styles.plan_floor_height} darvis-border darvis-canvas-wrapper`}>
-                {floorRef.current && camera && levelDetail.plan && (
+                {floorRef.current && camera && level.plan && (
                   <PointCanvas
-                    key={level.levelId}
+                    key={level._id}
                     points={floorPlanPoints} // points for the floor
                     camerasPoints={camerasValue} // other cameras points
                     updatePoints={updateFloorPoints} // get updated points from canvas
                     updateZoomRate={updateFloorZoomRate} // get zoom rate from canvas
                     canvasWidth={floorRef.current.clientWidth} // initial canvas width
                     canvasHeight={floorRef.current.clientHeight} // initial canvas height
-                    imagePath={ORIGIN + levelDetail.plan} // level image path
+                    imagePath={ORIGIN + level.plan} // level image path
                   />
                 )}
               </div>
@@ -214,7 +214,7 @@ const HomographyContainer = props => {
               <div ref={cameraRef} className={`${styles.plan_camera_height} darvis-border darvis-canvas-wrapper`}>
                 {cameraRef.current && camera && camera.image && (
                   <PointCanvas
-                    key={camera.id}
+                    key={camera._id}
                     points={cameraPoints}
                     updateZoomRate={updateCameraZoomRate}
                     updatePoints={updateCameraPoints}

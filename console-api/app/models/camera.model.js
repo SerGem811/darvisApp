@@ -15,27 +15,32 @@ const CameraSchema = new Schema({
     minlength: 5,
     maxlength: 100
   },
+  levelId: {
+    type: String,
+    default: ''
+  },
   isActive: {
     type: Boolean,
     default: false
   },
-  ip: {
+  url: {
     type: String,
     required: true
   },
-  username: {
+  user: {
     type: String,
     default: '',
     required: true,
-    minlength: 5,
+    minlength: 3,
     maxlength: 50
   },
   password: {
     type: String,
     required: true,
-    minlength: 5,
-    maxlength: 255
+    minlength: 3,
+    maxlength: 50
   },
+  points: Schema.Types.Mixed,     // cam_res_x, cam_res_y, src_points, dst_points, homography, ai_roi
   created: { type: Date, default: Date.now }
 });
 

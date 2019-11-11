@@ -1,15 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { Row, Col, Modal } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import uuidv1 from 'uuid/v1';
 
-import {
-  addKPI as addKPIService,
-  updateKPI as updateKPIService,
-  deleteKPI as deleteKPIService,
-  addTrigger as addTriggerService,
-  updateTrigger as updateTriggerService,
-  deleteTrigger as deleteTriggerService
-} from '../../shared/services/sites';
 import KPIModal from './components/kpiModal';
 import TriggerModal from './components/triggerModal';
 import ActionModal from './components/actionModal';
@@ -20,7 +13,16 @@ import ErrorContext from '../../shared/modules/error/context';
 import styles from './styles.module.scss';
 import SitesContext from '../../shared/modules/sitesContext/context';
 import ConfirmationContext from '../../shared/modules/confirmationModal/context';
-import uuidv1 from 'uuid/v1';
+
+import {
+  addKPI as addKPIService,
+  updateKPI as updateKPIService,
+  deleteKPI as deleteKPIService,
+  addTrigger as addTriggerService,
+  updateTrigger as updateTriggerService,
+  deleteTrigger as deleteTriggerService
+} from '../../shared/services/sites';
+
 
 const Analytics = () => {
   const { setError } = useContext(ErrorContext);
@@ -34,38 +36,36 @@ const Analytics = () => {
   });
 
   const toggleKPI = (kpi) => {
-    setModalState(s => ({
-      ...s,
+    setModalState({
+      ...modalState,
       kpi,
       visible_kpi: !modalState.visible_kpi,
-    }));
+    });
   };
-
   const toggleTrigger = (trigger) => {
-    setModalState(s => ({
-      ...s,
+    setModalState({
+      ...modalState,
       trigger,
       visible_trigger: !modalState.visible_trigger
-    }));
+    });
   };
-
   const toggleAction = (trigger) => {
-    setModalState(s => ({
-      ...s,
+    setModalState({
+      ...modalState,
       trigger,
+      visible_trigger: false,
       visible_action: !modalState.visible_action
-    }));
+    });
   }
-
   const dismiss = () => {
-    setModalState(s => ({
-      ...s,
+    setModalState({
+      ...modalState,
       visible_kpi: false,
       visible_trigger: false,
       visible_action: false,
       kpi: {},
       trigger: {}
-    }))
+    });
   };
 
   return (
@@ -73,8 +73,8 @@ const Analytics = () => {
       <SitesContext.Consumer>
         {props => {
           const { selectedSite, reloadSites } = props;
-          const { kpis } = selectedSite.structure.dataObjects[2];
-          const { triggers } = selectedSite.structure.dataObjects[3];
+          const { kpis } = selectedSite.dwInfo.objects[2];
+          const { triggers } = selectedSite.dwInfo.objects[3];
           // KPI functions
           const addKPI = async (kpi, cb, errcb) => {
             try {
@@ -83,6 +83,7 @@ const Analytics = () => {
               if (cb) {
                 cb();
               }
+              dismiss();
               reloadSites();
             } catch (e) {
               if (errcb) {
@@ -94,10 +95,10 @@ const Analytics = () => {
             try {
               const site = await updateKPIService(selectedSite._id, kpi);
               localStorage.setItem('selectedSite', JSON.stringify(site));
-
               if (cb) {
                 cb();
               }
+              dismiss();
               reloadSites();
             } catch (e) {
               setError(e, true);
@@ -124,10 +125,12 @@ const Analytics = () => {
           }
           const addTrigger = async (trigger, cb, errcb) => {
             try {
-              trigger.id = uuidv1();
+              debugger;
+              trigger._id = uuidv1();
               const site = await addTriggerService(selectedSite._id, trigger);
               localStorage.setItem('selectedSite', JSON.stringify(site));
               if (cb) { cb(); }
+              dismiss();
               reloadSites();
               toggleAction(trigger);
             } catch (e) {
@@ -140,6 +143,7 @@ const Analytics = () => {
               const site = await updateTriggerService(selectedSite._id, trigger);
               localStorage.setItem('selectedSite', JSON.stringify(site));
               if (cb) { cb(); }
+              dismiss();
               reloadSites();
             } catch (e) {
               setError(e, true);
@@ -242,7 +246,7 @@ const Analytics = () => {
                                           item: item.name,
                                           callback: () => {
                                             setLoader(true);
-                                            deleteKPI(item.id, () => resetConfirmationModal(), () => setLoader(false));
+                                            deleteKPI(item._id, () => resetConfirmationModal(), () => setLoader(false));
                                           },
                                         }));
                                       }}
@@ -344,7 +348,7 @@ const Analytics = () => {
                                           item: item.name,
                                           callback: () => {
                                             setLoader(true);
-                                            deleteTrigger(item.id, () => resetConfirmationModal(), () => setLoader(false));
+                                            deleteTrigger(item._id, () => resetConfirmationModal(), () => setLoader(false));
                                           },
                                         }));
                                       }}

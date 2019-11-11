@@ -9,16 +9,16 @@ const SiteSchema = new Schema({
     minlength: 3,
     maxlength: 50
   },
-  structure: Schema.Types.Mixed,
-  user: {
+  dwInfo: Schema.Types.Mixed,
+  owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  organization: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Organization'
-  },
-  created: { type: Date, default: Date.now }
+  created: { type: Date, default: Date.now },
+  levels: Schema.Types.Mixed,
+  cameras: Schema.Types.Mixed,
+  ai: Schema.Types.Mixed,
+  data: Schema.Types.Mixed,
 });
 
 const Site = mongoose.model('Site', SiteSchema);

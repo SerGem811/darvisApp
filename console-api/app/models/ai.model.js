@@ -14,7 +14,8 @@ const AISchema = new Schema({
     minlength: 5,
     maxlength: 100
   },
-  classes: Schema.Types.Mixed
+  classes: Schema.Types.Mixed,
+  data: Schema.Types.Mixed,
 });
 
 const AI = mongoose.model('ai', AISchema);

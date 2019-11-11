@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import {HOMOGRAPHY_API} from '../../config'
 const getHomography = async (cameraPoints, floorPlanPoints) => {
   try {
     const body = {
@@ -32,7 +32,7 @@ const getHomography = async (cameraPoints, floorPlanPoints) => {
     };
     const homography = await axios({
       method: 'post',
-      url: 'http://3.15.155.228:8090/api/v1/get_homographyMatrics',
+      url: HOMOGRAPHY_API,
       data: body,
     })
       .then(function fns(response) {

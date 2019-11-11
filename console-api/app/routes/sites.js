@@ -1,15 +1,15 @@
 const express = require('express');
 const { pick } = require('lodash');
-
 const fs = require('fs');
+const bcrypt = require('bcrypt');
+const router = express.Router();
 
+const AI = require('../models/ai.model');
 const Site = require('../models/site.modal');
 const Role = require('../models/role.model');
 const Organization = require('../models/organization.model');
 const License = require('../models/license.model');
 const { User } = require('../models/user.model');
-const bcrypt = require('bcrypt');
-const AI = require('../models/ai.model');
 const { auth } = require('../middleware/auth');
 const { generateKey } = require('../utils');
 const {
@@ -21,25 +21,23 @@ const {
   addZoneToLevel,
   updateZone,
   deleteZone,
-  addCameraToLevel,
-  updateCameraToLevel,
+  addCamera,
+  updateCamera,
   enableCamera,
-  deleteCameraToLevel,
+  deleteCamera,
   addKPI,
   updateKPI,
   deleteKPI,
   addTrigger,
   updateTrigger,
-  deleteTrigger
+  deleteTrigger,
+  addAI,
+  addAIData,
+  generateAI,
+  generateAIData
 } = require('../siteUtils');
 const upload = require('../fileUploads');
-const { checkFolderExists, saveDW, deleteLevelFile, getMainPath, copyLevelFile } = require('../fileUtils');
-
-const router = express.Router();
-
-// for local
-const server_env = false;
-
+const { checkFolderExists, saveDW, deleteFile, getMainPath, copyLevelFile } = require('../fileUtils');
 
 const addOneYear = () => {
   const date = new Date();
@@ -52,6 +50,7 @@ const addOneYear = () => {
 };
 
 // return all sites
+// this function looks like no need.
 router.get('/', auth, async (req, res) => {
   try {
     const sites = await Site.find({})
@@ -65,54 +64,47 @@ router.get('/', auth, async (req, res) => {
 });
 
 // return site by id
+// this function looks like no need.
 router.get('/:id', auth, async (req, res) => {
   const { id } = req.params;
 
   try {
     const site = await Site.findOne({ _id: id })
-      .populate('user')
-      .populate('organization');
+      .populate('owner')
 
     return res.json(site);
   } catch (e) {
     return res.status(503).send(e.message);
   }
 });
-
 router.get('/dataworldjson/:siteid', auth, async (req, res) => {
   const { siteid } = req.params;
 
   try {
     const site = await Site.findOne({ _id: siteid });
-    const ai = await AI.find({});
-    const dataworldJson = getDataWorldJson(site, ai[0]);
-    let r = await saveDW(site.structure.dataSources[0].name + '.json', dataworldJson);
-
+    const dataworldJson = getDataWorldJson(site);
+    let r = await saveDW(site.dwInfo.name + '.json', dataworldJson);
     if (!r) {
       return res.status(503).send('Failed on saving DW');
     }
-
-
     return res.json(dataworldJson);
   } catch (e) {
     console.log(e);
     return res.status(503).send('Failed on saving DW');
   }
 });
-
 router.get('/restartAI/:siteid', auth, async (req, res) => {
-  const fs = require('fs');
   const shell = require('shelljs');
   const { siteid } = req.params;
 
   try {
     const site = await Site.findOne({ _id: siteid });
     const ai = await AI.find({});
-    const dataworldJson = getDataWorldJson(site, ai[0]);
+    const dataworldJson = getDataWorldJson(site);
 
-    if (await saveDW(site.structure.dataSources[0].name + '.json', dataworldJson)) {
-      if (server_env) {
-        shell.exec('/home/console-api/restart_ai.sh');
+    if (await saveDW(site.dwInfo.name + '.json', dataworldJson)) {
+      if (config.mode === 'server') {
+        shell.exec(config.restart_ai);
       }
     } else {
       return res.status(503).send('Failed on saving DW');
@@ -122,31 +114,11 @@ router.get('/restartAI/:siteid', auth, async (req, res) => {
     return res.json('failed');
   }
 });
-
-router.post('/', auth, async (req, res) => {
-  try {
-    let site = new Site(pick(req.body, ['name']));
-    site.user = req.body.user._id;
-    site.organization = req.body.user.organization;
-
-    const ai = await AI.find({});
-    site.structure = await generateDataWorld(site, ai[0]._id);
-
-    site = await site.save();
-    if (site) {
-      return res.json(site);
-    } else {
-      return res.status(503).send('failed');
-    }
-  } catch (e) {
-    return res.status(503).send(e.message);
-  }
-});
-
+// update site name
 router.put('/:id', auth, async (req, res) => {
   const { id } = req.params;
   try {
-    let site = await Site.findOneAndUpdate({ _id: id }, pick(req.body, ['name', 'structure']));
+    let site = await Site.findOneAndUpdate({ _id: id }, pick(req.body, ['name']));
 
     if (!site) {
       return res.status(404).send('Site not found');
@@ -158,45 +130,47 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// level api
-router.post('/:id/addLevel', auth, upload.single('image'), async (req, res) => {
-  const fs = require('fs');
-  const { id } = req.params;
 
+// level api
+// add, update, delete
+// working fine
+router.post('/:id/addLevel', auth, upload.single('image'), async (req, res) => {
+  const { id } = req.params;
   try {
     let site = await Site.findOne({ _id: id });
     const { file, body } = req;
     if (file) {
-      const filePath = file.path.split('public')[1];
-
-      await copyLevelFile(file.path, filePath.replace('/uploads', ''));
-
+      let filePath = file.path.split('public')[1];
+      await copyLevelFile(file.path, filePath);
       let updatedSite = await addLevelToSite(body.name, body.vtype, filePath, site);
       site = await Site.findOneAndUpdate({ _id: id }, updatedSite);
     }
-
     if (!site) {
       return res.status(404).send('Site not found');
     }
-
     return res.json(site);
   } catch (e) {
+    console.log(e);
     return res.status(503).send(e.message);
   }
 });
-
 router.put('/:id/updateLevel', auth, upload.single('image'), async (req, res) => {
   const { id } = req.params;
   try {
     let site = await Site.findOne({ _id: id });
-
     const { file, body } = req;
     let filePath = "";
     if (file) {
       filePath = file.path.split('public')[1];
       // delete and upload new file
-      await deleteLevelFile(body.level_id);
-      await copyLevelFile(file.path, filePath.replace('/uploads', ''));
+      const level = site.levels.find(x => x._id === body.levelId);
+      const oldPath = getMainPath();
+      let oldFile = level.plan;
+      oldFile = oldFile.replace('\\uploads\\', '');
+      oldFile = oldFile.replace('/uploads/', '');
+      await deleteFile(oldPath + '/levels/' + oldFile);
+      await deleteFile('./public/uploads/' + oldFile)
+      await copyLevelFile(file.path, filePath);
     }
 
     // update site
@@ -209,32 +183,29 @@ router.put('/:id/updateLevel', auth, upload.single('image'), async (req, res) =>
 
     return res.json(site);
   } catch (e) {
+    console.log(e);
     return res.status(503).send(e.message);
   }
 });
-
 router.delete('/:id/deleteLevel/:levelId', auth, async (req, res) => {
   const { id, levelId } = req.params;
-
   try {
     let site = await Site.findOne({ _id: id });
     let updatedSite = await deleteLevelFromSite(site, levelId);
     site = await Site.findOneAndUpdate({ _id: id }, updatedSite);
-
-    // delete uploaded file for level
-    await deleteLevelFile(levelId);
-
     if (!site) {
       return res.status(404).send('Site not found');
     }
-
     return res.json(site);
   } catch (e) {
+    console.log(e);
     return res.status(503).send(e.message);
   }
 });
 
 // zone api
+// add, update, delete
+// working fine
 router.post('/:id/addZone', auth, async (req, res) => {
   const { id } = req.params;
 
@@ -255,7 +226,6 @@ router.post('/:id/addZone', auth, async (req, res) => {
     return res.status(503).send(e.message);
   }
 });
-
 router.put('/:id/updateZone', auth, async (req, res) => {
   const { id } = req.params;
 
@@ -276,7 +246,6 @@ router.put('/:id/updateZone', auth, async (req, res) => {
     return res.status(503).send(e.message);
   }
 });
-
 router.delete('/:id/deleteZone/:zoneId/:levelId', auth, async (req, res) => {
   const { id, zoneId, levelId } = req.params;
 
@@ -284,6 +253,52 @@ router.delete('/:id/deleteZone/:zoneId/:levelId', auth, async (req, res) => {
     let site = await Site.findOne({ _id: id });
     let updatedSite = await deleteZone(site, zoneId, levelId);
     site = await Site.findOneAndUpdate({ _id: id }, updatedSite);
+    if (!site) {
+      return res.status(404).send('Site not found');
+    }
+
+    return res.json(site);
+  } catch (e) {
+    console.log(e);
+    return res.status(503).send(e.message);
+  }
+});
+
+
+// ai api
+// add
+router.post('/:id/addAI', async(req, res) => {
+  const { id } = req.params;
+  try {
+    let site = await Site.findOne({ _id: id });
+    const { body } = req;
+
+    let updatedSite = await addAI(site, body);
+
+    site = await Site.findOneAndUpdate({ _id: id }, updatedSite);
+
+    if (!site) {
+      return res.status(404).send('Site not found');
+    }
+
+    return res.json(site);
+  } catch (e) {
+    return res.status(503).send(e.message);
+  }
+});
+
+// ai_data api
+// add
+router.post('/:id/addAIData', async(req, res) => {
+  const { id } = req.params;
+  try {
+    let site = await Site.findOne({ _id: id });
+    const { body } = req;
+
+    let updatedSite = await addAIData(site, body);
+
+    site = await Site.findOneAndUpdate({ _id: id }, updatedSite);
+
     if (!site) {
       return res.status(404).send('Site not found');
     }
@@ -302,10 +317,9 @@ router.post('/:id/addCamera', auth, async (req, res) => {
     let site = await Site.findOne({ _id: id });
     const { body } = req;
 
-    let updatedSite = await addCameraToLevel(
+    let updatedSite = await addCamera(
       site,
       body.camera,
-      body.levelId,
       body.cameraPoints,
       body.floorPlanPoints
     );
@@ -328,10 +342,9 @@ router.put('/:id/updateCamera', auth, async (req, res) => {
   try {
     let site = await Site.findOne({ _id: id });
     const { body } = req;
-    let updatedSite = await updateCameraToLevel(
+    let updatedSite = await updateCamera(
       site,
       body.camera,
-      body.levelId,
       body.cameraPoints,
       body.floorPlanPoints,
       body.homography,
@@ -356,7 +369,6 @@ router.put('/:id/enableCamera', auth, async (req, res) => {
     let updatedSite = await enableCamera(
       site,
       body.cameraId,
-      body.levelId
     );
     site = await Site.findOneAndUpdate({ _id: id }, updatedSite);
 
@@ -370,12 +382,12 @@ router.put('/:id/enableCamera', auth, async (req, res) => {
   }
 });
 
-router.delete('/:id/deleteCamera/:cameraId/:levelId', auth, async (req, res) => {
-  const { id, cameraId, levelId } = req.params;
+router.delete('/:id/deleteCamera/:cameraId', auth, async (req, res) => {
+  const { id, cameraId } = req.params;
 
   try {
     let site = await Site.findOne({ _id: id });
-    let updatedSite = await deleteCameraToLevel(site, cameraId, levelId);
+    let updatedSite = await deleteCamera(site, cameraId);
     site = await Site.findOneAndUpdate({ _id: id }, updatedSite);
 
     if (!site) {
@@ -409,7 +421,6 @@ router.post('/:id/addKPI', auth, async (req, res) => {
     return res.status(503).send(e.message);
   }
 });
-
 router.put('/:id/updateKPI', auth, async (req, res) => {
   const { id } = req.params;
   try {
@@ -424,10 +435,10 @@ router.put('/:id/updateKPI', auth, async (req, res) => {
     }
     return res.json(site);
   } catch (e) {
+    console.log(e);
     return res.status(503).send(e.message);
   }
 });
-
 router.delete('/:id/deleteKPI/:kpiId', auth, async (req, res) => {
   const { id, kpiId } = req.params;
   try {
@@ -463,7 +474,6 @@ router.post('/:id/addTrigger', auth, async (req, res) => {
     return res.status(503).send(e.message);
   }
 });
-
 router.put('/:id/updateTrigger', auth, async (req, res) => {
   const { id } = req.params;
   try {
@@ -480,7 +490,6 @@ router.put('/:id/updateTrigger', auth, async (req, res) => {
     return res.status(503).send(e.message);
   }
 });
-
 router.delete('/:id/deleteTrigger/:triggerId', auth, async (req, res) => {
   const { id, triggerId } = req.params;
   try {
@@ -495,6 +504,7 @@ router.delete('/:id/deleteTrigger/:triggerId', auth, async (req, res) => {
 
   }
 });
+
 
 router.delete('/:id', auth, async (req, res) => {
   try {
@@ -513,7 +523,7 @@ router.post('/registerPrem', async (req, res) => {
     const { body } = req;
     const owner = await Role.findOne({ key: 'owner' });
     if (!owner) {
-      return res.json('Something went wrong');
+      return res.json('no_owner');
     }
     let user = new User();
     user.name = 'owner';
@@ -528,22 +538,19 @@ router.post('/registerPrem', async (req, res) => {
 
     // create site
     let site = new Site(pick(req.body, ['name']));
-    site.user = user._id;
-    site.organization = user.organization;
-    let ai = await AI.find({});
-    if (ai) {
-      ai = ai[0];
-    } else {
-      ai = {};
-    }
-    site.structure = await generateDataWorld(site, ai);
+    site.owner = user._id;
+    site.levels = [];
+    site.cameras = [];
+    site.dwInfo = await generateDataWorld(site);
+    site.ai = await generateAI();
+    site.data = await generateAIData();
     site = await site.save();
     if (!site) {
-      return res.json('Failed on create new site');
+      return res.json('failed');
     }
     // save to local directory
-    var dataworldJson = getDataWorldJson(site, ai);
-    await saveDW(site.structure.dataSources[0].name + '.json', dataworldJson);
+    var dataworldJson = getDataWorldJson(site);
+    await saveDW(site.dwInfo.name + '.json', dataworldJson);
     // get organization
     const org = await Organization.findOne({ _id: user.organization });
 
@@ -673,7 +680,6 @@ router.post('/initialize', async (req, res) => {
       superAdmin = await superAdmin.save();
     }
     return res.json('success');
-
   } catch (e) {
     return res.status(503).send(e.message);
   }

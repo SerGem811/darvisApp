@@ -38,7 +38,7 @@ const UserManagementContainer = () => {
       setTableData(s => ({ ...s, loading: true }));
       try {
         const site = JSON.parse(localStorage.getItem('selectedSite'));
-        const users = await getUsersByOwner(site.user._id);
+        const users = await getUsersByOwner(site.owner._id);
         setTableData({
           siteUsers: users,
           loading: false
@@ -88,8 +88,8 @@ const UserManagementContainer = () => {
 
           const addSiteUser = async (user, callback, errCallback) => {
             try {
-              user.owner = selectedSite.user._id;
-              user.organization = selectedSite.user.organization;
+              user.owner = selectedSite.owner._id;
+              user.organization = selectedSite.owner.organization;
               delete user.confirm;
               await addUserService(user);
               if (callback) {

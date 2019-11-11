@@ -3,7 +3,7 @@ import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { Row, Col, Button } from 'reactstrap';
 import { checkLicense } from '../../shared/services/license';
 import { getOrganizationByLi } from '../../shared/services/organization';
-import { registerPrem } from '../../shared/services/sites';
+import { registerPrem, addKPI as addKPIService } from '../../shared/services/sites';
 import { LOGGED_IN_HOME } from '../../config';
 
 const ConfigContainer = ({ history }) => {
@@ -57,6 +57,21 @@ const ConfigContainer = ({ history }) => {
           localStorage.setItem('user', JSON.stringify(prem.user));
           localStorage.setItem('token', prem.user.token);
           localStorage.setItem('selectedSite', JSON.stringify(prem.site));
+
+          const ai = prem.site.ai;
+          const aiData = prem.site.data;
+
+          // create default one kpi
+          const kpi = {
+            name: ai.classes[0].attributes[0] + ' ' + ai.classes[0].className + ' counts',
+            type: 'count',
+            interval: 'day',
+            object: ai.classes[0].className,
+            attribute: ai.classes[0].attributes[0],
+            where: 'all'
+          }
+
+          await addKPIService(prem.site._id, kpi);
 
         } else if (state.step === 3) {
           history.push(LOGGED_IN_HOME);

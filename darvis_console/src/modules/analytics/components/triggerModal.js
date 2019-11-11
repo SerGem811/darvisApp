@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { ModalHeader, ModalBody, ModalFooter, Row, Col, Spinner, Button } from 'reactstrap';
 
-import { getAI } from '../../../shared/services/ai';
 import ErrorContext from '../../../shared/modules/error/context';
 
 const TriggerModal = ({ trigger, site, addTrigger, updateTrigger, dismiss }) => {
@@ -41,27 +40,24 @@ const TriggerModal = ({ trigger, site, addTrigger, updateTrigger, dismiss }) => 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setInitialData(d => ({ ...d, loading: true }));
-        const ais = await getAI();
-        if (!ais) {
-          // ai is not in database
-        }
+        setInitialData({ ...initialData, loading: true });
+        const ais = site.ai;
         let zl = [{ label: 'all', value: 'all' }];
         if (site) {
-          site.structure.dataObjects[0].levelDetails.map(l => {
+          site.levels.map(l => {
             zl.push({ label: l.name, value: l.name });
             l.zones.map(z => (zl.push({ label: z.name, value: z.name })));
           });
         }
         if (ais && ais.length > 0) {
-          setInitialData(d => ({ ...d, ai: ais[0], zl: zl, loading: false }));
+          setInitialData({ ...initialData, ai: ais[0], zl: zl, loading: false });
         } else {
-          setInitialData(d => ({ ...d, ai: [], zl: zl, loading: false }));
+          setInitialData({ ...initialData, ai: [], zl: zl, loading: false });
         }
 
       } catch (e) {
         setError(e, true);
-        setInitialData(d => ({ ...d, ai: [], zl: [], loading: false }));
+        setInitialData({ ...initialData, ai: [], zl: [], loading: false });
       }
     };
     fetchData();
@@ -366,16 +362,14 @@ const TriggerModal = ({ trigger, site, addTrigger, updateTrigger, dismiss }) => 
       let tr = generateTrigger(values);
       const cb = () => {
         setIsSaving(false);
-        dismiss();
       }
       const errcb = () => {
         setIsSaving(false);
-        dismiss();
       }
       setIsSaving(true);
       if (trigger) {
         tr = {
-          id: trigger.id,
+          _id: trigger._id,
           ...tr
         };
         updateTrigger(tr, cb, errcb);

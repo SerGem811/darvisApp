@@ -13,7 +13,7 @@ const camera = require('../app/routes/camera');
 
 module.exports = function(app) {
   app.get('/', function(req, res) {
-    res.sendFile(path.join(__dirname, '../build', 'index.html'));
+    //res.sendFile(path.join(__dirname, '../build', 'index.html'));
   });
 
   app.use('/api/ai', ai);

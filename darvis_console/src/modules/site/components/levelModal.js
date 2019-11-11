@@ -3,8 +3,8 @@ import { AvForm, AvField, AvRadioGroup, AvRadio } from 'availity-reactstrap-vali
 import { Label, Row, Col, Button, ModalFooter, ModalBody, Spinner } from 'reactstrap';
 import Dropzone from 'react-dropzone';
 
-import styled from 'styled-components';
 import styles from '../styles.module.scss';
+import styled from 'styled-components';
 import { ORIGIN } from '../../../config';
 
 const StyledImage = styled.img`
@@ -13,7 +13,6 @@ const StyledImage = styled.img`
 
 const LevelModal = ({ level, addLevel, updateLevel, dismiss }) => {
   const [isSaving, setIsSaving] = React.useState(false);
-
   const [formData, setFormData] = useState({});
   
   useEffect(() => {
@@ -22,28 +21,32 @@ const LevelModal = ({ level, addLevel, updateLevel, dismiss }) => {
       plan: level ? level.plan : undefined,
       vtype: level ? level.vtype : 'plan',
       path: level ? ORIGIN + level.plan : '/placeholder.png'
-    })
+    });
   }, [level]);
 
   function handleSubmit(event, values) {
-    const lvl = {
-      id: level ? level.id : undefined,
-      level: level ? level.level : undefined,
-      name: values.name,
-      scale: level ? level.scale : undefined,
-      plan: formData.plan,
-      vtype: formData.vtype,
-      image: formData.image,
-    };
-
-    const callback = () => {
-      setIsSaving(false);
-    };
-    setIsSaving(true);
-    if (level) {
-      updateLevel(lvl, () => callback(), () => callback());
-    } else {
-      addLevel(lvl, () => callback(), () => callback());
+    if(event) {
+      const lvl = {
+        _id: level ? level._id : undefined,
+        name: values.name,
+        scale: level ? level.scale : undefined,
+        plan: formData.plan,
+        vtype: formData.vtype,
+        image: formData.image,
+      };
+      try {
+        const callback = () => {
+          setIsSaving(false);
+        };
+        setIsSaving(true);
+        if (level) {
+          updateLevel(lvl, () => callback(), () => callback());
+        } else {
+          addLevel(lvl, () => callback(), () => callback());
+        }
+      } catch(err) {
+        console.log(err);
+      }
     }
   }
 

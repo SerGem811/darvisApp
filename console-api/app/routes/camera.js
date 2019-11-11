@@ -28,7 +28,7 @@ router.get('/', auth, async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     let camera = new Camera(
-      pick(req.body, ['name', 'type', 'isActive', 'ip', 'username', 'password'])
+      pick(req.body, ['name', 'type', 'isActive', 'ip', 'user', 'pass'])
     );
     camera = await camera.save();
 

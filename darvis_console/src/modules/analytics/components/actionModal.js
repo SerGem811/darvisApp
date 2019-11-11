@@ -30,6 +30,7 @@ const ActionModal = ({ trigger, updateTrigger, dismiss }) => {
       { label: 'Constant', value: 'constant' }
     ],
   };
+
   const editableRef = React.createRef();
   const formRef = React.createRef();
 
@@ -41,7 +42,7 @@ const ActionModal = ({ trigger, updateTrigger, dismiss }) => {
     actionReceipientLabel: 'Endpoint URL :',
     fields: [],
     html: '',
-    textmodeAI: 'input',
+    textmodeAI: 'id',
   }, []);
 
   useEffect(() => {
@@ -63,7 +64,7 @@ const ActionModal = ({ trigger, updateTrigger, dismiss }) => {
         actionReceipientLabel: label,
         fields: trigger.action.fields && trigger.action.fields.length > 0 ? trigger.action.fields : [],
         html: trigger.action.html ? trigger.action.html : '',
-        textmodeAI: 'input',
+        textmodeAI: 'id',
       });
     }
   }, [trigger]);
@@ -118,13 +119,13 @@ const ActionModal = ({ trigger, updateTrigger, dismiss }) => {
         });
       } else if (formData.actionType === 'text' || formData.actionType === 'email') {
         let inputVal = '';
-        if(formData.textmodeAI === 'input') {
+        if (formData.textmodeAI === 'input') {
           inputVal = `<input class='innerEdit' type='text' value='' />`;
         } else {
           inputVal = `<input class='innerSpan' type='text' disabled value='${formData.textmodeAI}' />`
         }
         let html = editableRef.current.innerHTML;
-        
+
         if (html.endsWith('</div>')) {
           html = html.replace(new RegExp('</div>$'), inputVal + '</div>');
         } else {
@@ -199,10 +200,12 @@ const ActionModal = ({ trigger, updateTrigger, dismiss }) => {
     }
   }
   const beforeSubmit = (event) => {
-    setFormData({
-      ...formData,
-      html: editableRef.current.innerHTML
-    });
+    if (formData.actionType === 'text' || formData.actionType === 'email') {
+      setFormData({
+        ...formData,
+        html: editableRef.current.innerHTML
+      });
+    }
     formRef.current.submit();
   }
   const handleValidSubmit = (event, values) => {
@@ -388,23 +391,23 @@ const ActionModal = ({ trigger, updateTrigger, dismiss }) => {
                   </React.Fragment>
                 )}
               <Row className='m-t-10'>
-                  {(formData.actionType === 'text' || formData.actionType === 'email') && (
-                    <AvField
-                      type='select'
-                      name='textmodeAI'
-                      onChange={onTextmodeAIChange}
-                      className='m-l-15'
-                      value={formData.textmodeAI}
-                    >
-                      {initialData.aidata && initialData.aidata.map((data, j) => (
-                        <option key={'textmodeai_' + j + data.value} value={data.value}>{data.label}</option>
-                      ))}
-                    </AvField>
-                  )}
-                  <button className={`${styles.blue} m-l-30 p-b-10`} type="button" onClick={addField}>
-                    <FontAwesomeIcon size="1x" icon="plus-circle" />
-                    <span className="pl-1">Add new field</span>
-                  </button>
+                {(formData.actionType === 'text' || formData.actionType === 'email') && (
+                  <AvField
+                    type='select'
+                    name='textmodeAI'
+                    onChange={onTextmodeAIChange}
+                    className='m-l-15'
+                    value={formData.textmodeAI}
+                  >
+                    {initialData.aidata && initialData.aidata.map((data, j) => (
+                      <option key={'textmodeai_' + j + data.value} value={data.value}>{data.label}</option>
+                    ))}
+                  </AvField>
+                )}
+                <button className={`${styles.blue} m-l-30 p-b-10`} type="button" onClick={addField}>
+                  <FontAwesomeIcon size="1x" icon="plus-circle" />
+                  <span className="pl-1">Add new field</span>
+                </button>
               </Row>
             </ModalBody>
             <ModalFooter style={{ backgroundColor: '#e5e5e5' }}>

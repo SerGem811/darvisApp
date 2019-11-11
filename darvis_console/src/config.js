@@ -1,11 +1,12 @@
 export const ORIGIN = 'http://localhost:8000';
 
-export const LEVELPATH = '/home/darvis/levels';
-export const DWPATH = '/home/darvis/dw';
+export const CAMERA_API = 'http://3.15.155.228:8086/api/getSingleFrame';
+export const HOMOGRAPHY_API = 'http://3.15.155.228:8090/api/v1/get_homographyMatrics';
+export const API_BASE_URL = `${ORIGIN}/api`;
+export const TEST_ENV = true;
+
 // export const ORIGIN = `${window.location.origin}`;
 // export const ORIGIN = 'https://darvis-admin-api.herokuapp.com'
-
-export const API_BASE_URL = `${ORIGIN}/api`;
 
 export const LOGGING = {
   enabled: true,
