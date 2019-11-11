@@ -401,7 +401,7 @@ exports.addCamera = function (site, camera, cameraPoints, floorPlanPoints) {
         f: 0,
         g: 0,
         h: 0,
-        i: 0
+        i: 1
       };
       camera.cameraPoints = cameraPoints;
       camera.floorPlanPoints = floorPlanPoints;
@@ -430,14 +430,34 @@ exports.updateCamera = function (site, camera, cameraPoints, floorPlanPoints, ho
   const fs = require('fs');
   return new Promise((resolve, reject) => {
     if (site && camera && camera._id) {
+      console.log(cameraPoints);
+      console.log(floorPlanPoints);
+      console.log(homography);
       if (floorPlanPoints) {
         camera.floorPlanPoints = floorPlanPoints;
+      } else {
+        camera.floorPlanPoints = {};
       }
       if (cameraPoints) {
         camera.cameraPoints = cameraPoints;
+      } else {
+        camera.cameraPoints = {};
       }
-      camera.homography = homography;
-
+      if (homography) {
+        camera.homography = homography;
+      } else {
+        camera.homography = {
+          a: 0,
+          b: 0,
+          c: 0,
+          d: 0,
+          e: 0,
+          f: 0,
+          g: 0,
+          h: 0,
+          i: 1
+        };
+      }
       const selectedCamera = site.cameras.find(x => x._id === camera._id);
 
       selectedCamera.name = camera.name;
@@ -469,15 +489,9 @@ exports.updateCamera = function (site, camera, cameraPoints, floorPlanPoints, ho
       selectedCamera.user = camera.user;
       selectedCamera.pass = camera.pass;
       selectedCamera.levelId = camera.levelId;
-      if (camera.homography) {
-        selectedCamera.homography = camera.homography;
-      }
-      if (cameraPoints) {
-        selectedCamera.cameraPoints = cameraPoints;
-      }
-      if (floorPlanPoints) {
-        selectedCamera.floorPlanPoints = floorPlanPoints;
-      }
+      selectedCamera.homography = camera.homography;
+      selectedCamera.cameraPoints = cameraPoints;
+      selectedCamera.floorPlanPoints = floorPlanPoints;
       resolve(site);
     } else {
       reject('Something is null');
@@ -499,6 +513,24 @@ exports.deleteCamera = function (site, cameraId) {
     }
   });
 };
+
+exports.addKPIs = function(site, kpis) {
+  return new Promise((resolve, reject) => {
+    if (site) {
+      kpis.forEach(item => {
+        let k = item;
+        k = {
+          _id: uuidv1(),
+          ...k
+        }
+        site.dwInfo.objects[2].kpis.push(k);
+      });
+      resolve(site);
+    } else {
+      reject('Site not found');
+    }
+  });
+}
 
 // kpi functionalities
 exports.addKPI = function (site, kpi) {

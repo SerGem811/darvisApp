@@ -25,6 +25,7 @@ const {
   updateCamera,
   enableCamera,
   deleteCamera,
+  addKPIs,
   addKPI,
   updateKPI,
   deleteKPI,
@@ -400,6 +401,27 @@ router.delete('/:id/deleteCamera/:cameraId', auth, async (req, res) => {
   }
 });
 
+router.post('/:id/addKPIs', auth, async(req, res) => {
+  const {id} = req.params;
+  try {
+    let site = await Site.findOne({ _id: id });
+    const { body } = req;
+    let updatedSite = await addKPIs(
+      site,
+      body.kpis,
+    );
+    site = await Site.findOneAndUpdate({ _id: id }, updatedSite, {new: true});
+    if (!site) {
+      return res.status(404).send('Site not found');
+    }
+
+    return res.json(site);
+  } catch (e) {
+    console.log(e);
+    return res.status(503).send(e.message);
+  }
+});
+
 // kpi api
 router.post('/:id/addKPI', auth, async (req, res) => {
   const { id } = req.params;
@@ -410,8 +432,8 @@ router.post('/:id/addKPI', auth, async (req, res) => {
       site,
       body.kpi,
     );
-    site = await Site.findOneAndUpdate({ _id: id }, updatedSite);
-
+    site = await Site.findOneAndUpdate({ _id: id }, updatedSite, {new: true});
+    
     if (!site) {
       return res.status(404).send('Site not found');
     }

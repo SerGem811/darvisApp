@@ -215,6 +215,21 @@ export async function addKPI(siteId, kpi) {
     );
 }
 
+export async function addKPIs(siteId, kpis) {
+  const api = new API();
+  return api
+    .post(`${SITES}/${siteId}/addKPIs`, {
+      siteId,
+      kpis,
+    })
+    .then(
+      res => res.data,
+      error => {
+        throw error;
+      }
+    );
+}
+
 export async function updateKPI(siteId, kpi) {
   const api = new API();
   return api

@@ -174,7 +174,7 @@ const SiteContainer = ({history}) => {
             const attachCameraToLevel = async(levelId, camera, cb, errcb) => {
               try {
                 camera.levelId = levelId;
-                await updateCameraToSite(selectedSite._id, camera, camera.cameraPoints, camera.floorPlanPoints, camera.homography);
+                await updateCameraToSite(selectedSite._id, camera, undefined, undefined, undefined);
                 if(cb) {cb();}
                 dismiss();
                 let user = localStorage.getItem('user') || {};

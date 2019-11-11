@@ -3,7 +3,7 @@ import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { Row, Col, Button } from 'reactstrap';
 import { checkLicense } from '../../shared/services/license';
 import { getOrganizationByLi } from '../../shared/services/organization';
-import { registerPrem, addKPI as addKPIService } from '../../shared/services/sites';
+import { registerPrem, addKPIs as addKPIsService } from '../../shared/services/sites';
 import { LOGGED_IN_HOME } from '../../config';
 
 const ConfigContainer = ({ history }) => {
@@ -59,19 +59,22 @@ const ConfigContainer = ({ history }) => {
           localStorage.setItem('selectedSite', JSON.stringify(prem.site));
 
           const ai = prem.site.ai;
-          const aiData = prem.site.data;
+
+          let kpis = [];
+          ai.classes.map((item) => (
+            kpis.push({
+              name: 'Number of ' + item.className,
+              type: 'count',
+              interval: 'day',
+              object: item.className,
+              where: 'all'
+            })
+          ));
+          console.log(kpis);
+
+          await addKPIsService(prem.site._id, kpis);
 
           // create default one kpi
-          const kpi = {
-            name: ai.classes[0].attributes[0] + ' ' + ai.classes[0].className + ' counts',
-            type: 'count',
-            interval: 'day',
-            object: ai.classes[0].className,
-            attribute: ai.classes[0].attributes[0],
-            where: 'all'
-          }
-
-          await addKPIService(prem.site._id, kpi);
 
         } else if (state.step === 3) {
           history.push(LOGGED_IN_HOME);
@@ -93,7 +96,7 @@ const ConfigContainer = ({ history }) => {
               {(state.step === 0) && (
                 <React.Fragment>
                   <Row>
-                    <Col md={{size:11, offset:1}}>
+                    <Col md={{ size: 11, offset: 1 }}>
                       <div className='center-item'>
                         <h4>Please enter a valid license key to continue</h4>
                       </div>
