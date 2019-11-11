@@ -9,7 +9,8 @@ const CameraAddButton = ({ handleAddClick }) => {
     <div className={styles.cameraAddButton}>
       <div className={styles.cameraAddButtonBody}>
         <Button color="default" onClick={handleAddClick}>
-          <FontAwesomeIcon className={styles.addButtonIcon} size="8x" icon="plus" />
+          <FontAwesomeIcon size="5x" icon="plus" />
+          <div style={{fontSize: '0.7rem'}}>Add new camera</div>
         </Button>
       </div>
     </div>

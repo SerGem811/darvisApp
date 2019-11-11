@@ -33,7 +33,7 @@ const CameraPreview = ({ camera, updateCamera, deleteCamera, refreshCamera, enab
         onChange={enableCamera}
       />
       <div className={styles.cameraCardFooter}>
-        <span className={styles.cameraCardText}>{camera.name} ( {camera.type} )</span>
+        <span>{camera.name} ( {camera.type} )</span>
         <span>
           <button className={styles.editButton} onClick={updateCamera}><FontAwesomeIcon icon="pen" /></button>
           <ConfirmationContext.Consumer>

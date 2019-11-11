@@ -2,23 +2,24 @@
   border: 0;
   height: 150px;
   transition: all 250ms;
+  color: darkgray;
 
   svg {
     transition: color 500ms;
+    color: darkgray;
   }
 
   &:hover {
     transform: scale(1.05);
-    svg { color: rgb(81, 92, 194); }
+    svg { color: gray; }
   }
 }
 .cameraAddButtonBody {
   text-align: center;
   padding: 35px 10px;
 }
-.addButtonIcon {
-  color: darkgray;
-}
+
+
 
 .refreshButton {
   position: absolute;
@@ -35,13 +36,13 @@
 .cameraCard {
   box-shadow: 2px 5px 10px #ededed;
   border: 0;
-  height: 200px;
+  height: auto;
   position: relative;
   margin-top:20px;
   z-index:1;
 }
 .cardBodyImage {
-  height: 160px;
+  height: auto;
   border-radius: 5px;
   width: 100%;
 }
@@ -49,18 +50,14 @@
   border-top: 1px solid #d3d3d36b;
   padding: 5px;
   margin-left:5px;
-  font-size: 12px;
+  font-size: 0.7rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 40px;
-}
-.cameraCardText{
-  font-size: 1.1rem;
 }
 
 .switch {
-  font-size: 8px;
+  font-size: 0.7rem;
   position: absolute;
   top: 5px;
   left: 5px;
@@ -71,7 +68,6 @@
 .editButton {
   color: #4586e7;
   margin-right: 5px;
-  font-size: 1rem;
   &:hover {
     color: #1359c3;
   }
@@ -79,7 +75,6 @@
 
 .trashButton {
   color: #f35656;
-  font-size: 1rem;
   &:hover {
     color: #ff0056
   }

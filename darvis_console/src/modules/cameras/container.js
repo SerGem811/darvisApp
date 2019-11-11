@@ -111,7 +111,7 @@ const CamerasContainer = () => {
               <React.Fragment>
                 <Row>
                   {selectedSite.cameras && selectedSite.cameras.map(cam => (
-                    <Col md={3} key={cam._id}>
+                    <Col md={2} key={cam._id}>
                       <CameraPreview
                         camera={cam}
                         updateCamera={() => { toggleModal(cam) }}

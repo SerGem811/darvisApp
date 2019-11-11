@@ -1,4 +1,4 @@
-export const ORIGIN = 'http://localhost:8000';
+export const ORIGIN = 'http://3.15.155.228:8000';
 
 export const CAMERA_API = 'http://3.15.155.228:8086/api/getSingleFrame';
 export const HOMOGRAPHY_API = 'http://3.15.155.228:8090/api/v1/get_homographyMatrics';
