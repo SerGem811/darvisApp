@@ -19,13 +19,25 @@ const HomographyContainer = props => {
   }
   const [level] = useState(getLevel());
 
-  function getLevelDetail() {
-    if (props.match.params && props.match.params.levelId) {
-      return site.levels.find(l => l._id === props.match.params.levelId) || {};
-    }
-    return {};
+  function getSorted(pts) {
+    debugger;
+    const ptsArr = [];
+    ptsArr.push(pts.p1);
+    ptsArr.push(pts.p2);
+    ptsArr.push(pts.p3);
+    ptsArr.push(pts.p4);
+
+    ptsArr.sort((a,b) => (a.x + a.y) - (b.x + b.y));
+    // top left
+    const tl = ptsArr[0];
+    const br = ptsArr[3];
+    ptsArr.sort((a,b) => (a.x - a.y) - (b.x - b.y));
+    const bl = ptsArr[0];
+    const tr = ptsArr[3];
+    
+    return {p1: tl, p2: tr, p3: br, p4: bl};
   }
-  
+
   function getCamera() {
     if (props.match.params && props.match.params.cameraId) {
       return site.cameras.find(c => c._id === props.match.params.cameraId) || {};
@@ -128,8 +140,8 @@ const HomographyContainer = props => {
 
   async function savePoints() {
     if (camera && level) {
-      const cpoints = { ...cameraPoints };
-      const fpoints = { ...floorPlanPoints };
+      let cpoints = { ...cameraPoints };
+      let fpoints = { ...floorPlanPoints };
 
       if (!cameraRef.current || !floorRef.current) {
         // error case
@@ -150,6 +162,10 @@ const HomographyContainer = props => {
           fpoints[item].y = parseFloat(floorPlanPoints[item].y / (floorHeight * floorZoomRate));
         });
       }
+
+      // points ordering
+      cpoints = getSorted(cpoints);
+      fpoints = getSorted(fpoints);
 
       const homography = await getHomography(cpoints, fpoints);
 

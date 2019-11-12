@@ -430,9 +430,6 @@ exports.updateCamera = function (site, camera, cameraPoints, floorPlanPoints, ho
   const fs = require('fs');
   return new Promise((resolve, reject) => {
     if (site && camera && camera._id) {
-      console.log(cameraPoints);
-      console.log(floorPlanPoints);
-      console.log(homography);
       if (floorPlanPoints) {
         camera.floorPlanPoints = floorPlanPoints;
       } else {
