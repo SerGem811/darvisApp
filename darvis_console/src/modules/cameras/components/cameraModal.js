@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Spinner, Button, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { connectCamera } from '../service';
-
+import {TEST_ENV} from '../../../config';
 const CameraModal = ({ camera, addCamera, updateCamera, dismiss }) => {
   const [isSaving, setIsSaving] = useState(false);
 
@@ -39,7 +39,7 @@ const CameraModal = ({ camera, addCamera, updateCamera, dismiss }) => {
 
     if (!camera) {
       const cam = { 
-        url: 'rtsp://' + values.user + ':' + values.pass + '@' + values.url,
+        url: TEST_ENV ? values.url : 'rtsp://' + values.user + ':' + values.pass + '@' + values.url,
         user: values.user,
         pass: values.pass
       }

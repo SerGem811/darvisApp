@@ -4,9 +4,7 @@ import interact from 'interact.js';
 export default class PointDiv extends Component {
   static defaultProps = {
     draggable: false,
-    resizable: false,
     draggableOptions: {},
-    resizableOptions: {},
   };
 
   componentDidMount() {
@@ -20,9 +18,8 @@ export default class PointDiv extends Component {
   }
 
   setInteractions() {
-    const { draggable, resizable, draggableOptions, resizableOptions } = this.props;
+    const { draggable, draggableOptions } = this.props;
     if (draggable) this.interact.draggable(draggableOptions);
-    if (resizable) this.interact.resizable(resizableOptions);
   }
 
   render() {

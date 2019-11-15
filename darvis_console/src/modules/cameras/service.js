@@ -1,10 +1,11 @@
 import axios from 'axios';
-import {CAMERA_API, TEST_ENV} from '../../config'
+import {CAMERA_API} from '../../config'
 
 export const connectCamera = async camera => {
   try {
+    console.log(camera);
     const res = await axios.post(CAMERA_API, {
-      url: TEST_ENV ? '/data/camera_34.mp4' : camera.url,
+      url: camera.url,
       username: camera.user,
       password: camera.pass,
     });

@@ -94,7 +94,7 @@ const CamerasContainer = () => {
                 pass: camera.pass
               });
               if (image !== 'error' && image.length > 100) {
-                console.log('refresh');
+                //console.log('refresh');
                 await updateCameraToSite(selectedSite._id, camera, camera.cameraPoints, camera.floorPlanPoints);
                 reloadSites();
               }

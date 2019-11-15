@@ -3,6 +3,7 @@ import { Button } from 'reactstrap';
 import styled from 'styled-components';
 import interact from 'interact.js';
 import PointDiv from './pointDiv';
+import { Draggable } from 'gsap/all';
 
 const StyledImage = styled.img`
   max-width: 100%;
@@ -38,6 +39,13 @@ class PointCanvas extends React.Component {
       this.updateDotPosition({ key, x, y });
       // this.drawPolygon();
     },
+    onend: event => {
+      // const {boundId} = this.props;
+      // const divInstance = Draggable.get('#' + boundId + '-div');
+      // if(divInstance) {
+      //   divInstance.enabled(true);
+      // }
+    }
   };
 
   constructor(props) {
@@ -58,7 +66,33 @@ class PointCanvas extends React.Component {
     this.canvasRef = React.createRef(); // canvas ref for drawing polygon
     this.backCanvasRef = React.createRef(); //
     this.imageRef = React.createRef(); // image ref
-    this.divRef = React.createRef(); // div wrapper for canvas and image
+    this.divRef = null; // div wrapper for canvas and image
+  }
+
+  componentDidMount() {
+    const {boundId} = this.props;
+    if (this.divRef) {
+      Draggable.create(this.divRef, {
+        type: 'x, y',
+        bounds: '#' + boundId,
+        edgeResistance: 0.9,
+        zIndexBoost: false,
+        dragClickables: false,
+        zIndex:1,
+        onPress: function(event) {
+          // debugger;
+          // if(event.target.tagName === 'IMG') {
+          //   const divInstance = Draggable.get('#' + boundId + '-div');
+          //   if(divInstance) {
+          //     divInstance.enabled(false);
+          //   }
+          // }
+        },
+        onDrag: function(event) {
+
+        },
+      });
+    }
   }
 
   componentDidUpdate() {
@@ -77,47 +111,6 @@ class PointCanvas extends React.Component {
         }
       });
     }
-    if (zoomRate > 1) {
-      interact(this.divRef.current).draggable({
-        onmove(event) {
-          const { target } = event;
-
-          const dataX = target.getAttribute('data-x');
-          const dataY = target.getAttribute('data-y');
-          let initialX = parseFloat(dataX) || 0;
-          let initialY = parseFloat(dataY) || 0;
-
-          if (initialX === 0) {
-            initialX = (canvasWidth - canvasWidth * zoomRate) / 2;
-          }
-          if (initialY === 0) {
-            initialY = (canvasHeight - canvasHeight * zoomRate) / 2;
-          }
-
-          const deltaX = event.dx;
-          const deltaY = event.dy;
-
-          const newX = initialX + deltaX;
-          const newY = initialY + deltaY;
-
-          if (
-            newX > canvasWidth - canvasWidth * zoomRate &&
-            newY > canvasHeight - canvasHeight * zoomRate &&
-            newX < 0 &&
-            newY < 0
-          ) {
-            target.style.transform = `translate(${newX}px, ${newY}px)`;
-            target.setAttribute('data-x', newX);
-            target.setAttribute('data-y', newY);
-          }
-        },
-        interia: true,
-        restrict: {
-          restriction: 'parent',
-        },
-      });
-    }
-
     this.drawPolygon(points, this.canvasRef.current);
   }
 
@@ -203,10 +196,10 @@ class PointCanvas extends React.Component {
       // re-create canvas
       this.canvasRef.current.width = w;
       this.canvasRef.current.height = h;
-      this.divRef.current.style.transform = `translate(${(canvasWidth - w) / 2}px, ${(canvasHeight - h) / 2}px)`;
-      this.divRef.current.style.webkitTransform = `translate(${(canvasWidth - w) / 2}px, ${(canvasHeight - h) / 2}px)`;
-      this.divRef.current.setAttribute('data-x', (canvasWidth - w) / 2);
-      this.divRef.current.setAttribute('data-y', (canvasHeight - h) / 2);
+      this.divRef.style.transform = `translate(${(canvasWidth - w) / 2}px, ${(canvasHeight - h) / 2}px)`;
+      this.divRef.style.webkitTransform = `translate(${(canvasWidth - w) / 2}px, ${(canvasHeight - h) / 2}px)`;
+      this.divRef.setAttribute('data-x', (canvasWidth - w) / 2);
+      this.divRef.setAttribute('data-y', (canvasHeight - h) / 2);
       // re-calculate points
       const pt = { ...points };
       this.multiplyPoints(pt, zoomRate, rate);
@@ -229,10 +222,10 @@ class PointCanvas extends React.Component {
       // re-create canvas
       this.canvasRef.current.width = w;
       this.canvasRef.current.height = h;
-      this.divRef.current.style.transform = `translate(${(canvasWidth - w) / 2}px, ${(canvasHeight - h) / 2}px)`;
-      this.divRef.current.style.webkitTransform = `translate(${(canvasWidth - w) / 2}px, ${(canvasHeight - h) / 2}px)`;
-      this.divRef.current.setAttribute('data-x', (canvasWidth - w) / 2);
-      this.divRef.current.setAttribute('data-y', (canvasHeight - h) / 2);
+      this.divRef.style.transform = `translate(${(canvasWidth - w) / 2}px, ${(canvasHeight - h) / 2}px)`;
+      this.divRef.style.webkitTransform = `translate(${(canvasWidth - w) / 2}px, ${(canvasHeight - h) / 2}px)`;
+      this.divRef.setAttribute('data-x', (canvasWidth - w) / 2);
+      this.divRef.setAttribute('data-y', (canvasHeight - h) / 2);
       // re-calculate points
       const pt = { ...points };
       this.multiplyPoints(pt, zoomRate, rate);
@@ -241,16 +234,14 @@ class PointCanvas extends React.Component {
         zoomRate: rate,
       });
       updateZoomRate(rate);
-      if (rate === 1) {
-        interact(this.divRef.current).unset();
-      }
     }
   };
 
   render() {
-    const { imagePath, canvasWidth, canvasHeight } = this.props;
+    const { imagePath, canvasWidth, canvasHeight, boundId } = this.props;
     const { points, zoomRate } = this.state;
     const draggableTranslates = [];
+
 
     Object.keys(points).forEach(item => {
       draggableTranslates.push({
@@ -261,6 +252,7 @@ class PointCanvas extends React.Component {
     this.drawPolygon(points, this.canvasRef.current);
     return (
       <div
+        id={boundId}
         className="darvis-plan-canvas-container"
         style={{ overflow: 'hidden' }} /* onWheel={(e) => this.handleMouseWheel(e)} */
       >
@@ -273,7 +265,11 @@ class PointCanvas extends React.Component {
             -
           </Button>
         </div>
-        <div ref={this.divRef} style={{ width: `${canvasWidth * zoomRate}px`, height: `${canvasHeight * zoomRate}px` }}>
+        <div
+          ref={r => (this.divRef = r)} 
+          style={{ width: `${canvasWidth * zoomRate}px`, height: `${canvasHeight * zoomRate}px` }}
+          id={boundId + '-div'}
+        >
           {imagePath && (
             <StyledImage src={imagePath} alt="placeholder" className="w-full h-full z-98" ref={this.imageRef} />
           )}
@@ -301,6 +297,7 @@ class PointCanvas extends React.Component {
                   style={draggableTranslates[nIndex]}
                   data-x={points[item].x}
                   data-y={points[item].y}
+                  data-clickable='true'
                 />
               </PointDiv>
             );

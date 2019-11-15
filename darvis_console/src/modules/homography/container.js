@@ -8,50 +8,65 @@ import styles from './styles.module.scss';
 import { updateCameraToSite } from '../../shared/services/sites';
 import getHomography from './service';
 
-const HomographyContainer = props => {
-  const site = JSON.parse(localStorage.getItem('selectedSite'));
+const HomographyContainer = (props) => {
+  let site = JSON.parse(localStorage.getItem('selectedSite'));
 
-  function getLevel() {
-    if (props.match.params && props.match.params.levelId) {
-      return site.levels.find(l => l._id === props.match.params.levelId) || {};
-    }
-    return {};
+  const [initialData, setInitialData] = useState({
+    camera: {},
+    level: {},
+    otherCamerasPoints: []
+  });
+
+  const getOtherCameras = (current) => {
+    const points = [];
+    site.cameras.forEach(item => {
+      if (item._id !== current._id && item.levelId !== current.levelId && item.floorPlanPoints) {
+        points.push({ isActive: item.isActive, points: item.floorPlanPoints });
+      }
+    });
+    return points;
   }
-  const [level] = useState(getLevel());
+  useEffect(() => {
+    const cam = site.cameras.find(c => c._id === props.match.params.cameraId) || {};
+    let otherPoints = [];
+    if (cam) {
+      otherPoints = getOtherCameras(cam);
+    }
+    setInitialData({
+      level: site.levels.find(l => l._id === props.match.params.levelId) || {},
+      camera: cam,
+      otherCamerasPoints: otherPoints,
+    });
+  }, []);
 
-  function getSorted(pts) {
-    debugger;
+  const [state, setState] = useState({
+    camPoints: [],
+    cameraZoomRate: 1,
+    floorZoomRate: 1,
+    floorPlanPoints: []
+  });
+
+  const cameraRef = useRef(null);
+  const floorRef = useRef(null);
+
+  const getSorted = (pts) => {
     const ptsArr = [];
     ptsArr.push(pts.p1);
     ptsArr.push(pts.p2);
     ptsArr.push(pts.p3);
     ptsArr.push(pts.p4);
 
-    ptsArr.sort((a,b) => (a.x + a.y) - (b.x + b.y));
+    ptsArr.sort((a, b) => (a.x + a.y) - (b.x + b.y));
     // top left
     const tl = ptsArr[0];
     const br = ptsArr[3];
-    ptsArr.sort((a,b) => (a.x - a.y) - (b.x - b.y));
+    ptsArr.sort((a, b) => (a.x - a.y) - (b.x - b.y));
     const bl = ptsArr[0];
     const tr = ptsArr[3];
-    
-    return {p1: tl, p2: tr, p3: br, p4: bl};
+
+    return { p1: tl, p2: tr, p3: br, p4: bl };
   }
-
-  function getCamera() {
-    if (props.match.params && props.match.params.cameraId) {
-      return site.cameras.find(c => c._id === props.match.params.cameraId) || {};
-    }
-    return {};
-  }
-  const [camera] = useState(getCamera());
-
-  const [siteId] = useState(site._id);
-
-  const cameraRef = useRef(null);
-  const floorRef = useRef(null);
-
-  function getPoints(xRatio, yRatio, pt) {
+  const getPoints = (xRatio, yRatio, pt) => {
     if (pt) {
       return {
         p1: { x: pt.p1.x * xRatio, y: pt.p1.y * yRatio },
@@ -68,80 +83,56 @@ const HomographyContainer = props => {
     };
   }
 
-  const [cameraPoints, setCameraPoints] = useState();
-
-  function getCamerasPoint() {
-    const points = [];
-
-    const cameras = site.cameras.filter(x => x.levelId === level._id);
-    if (cameras) {
-      cameras.forEach(item => {
-        if (item.id !== camera.id && item.floorPlanPoints) {
-          points.push({ isActive: item.isActive, points: item.floorPlanPoints });
-        }
+  useEffect(() => {
+    if (cameraRef.current && floorRef.current && initialData.camera) {
+      const xRatioCam = cameraRef.current.clientWidth;
+      const yRatioCam = cameraRef.current.clientHeight;
+      const xRatioFl = floorRef.current.clientWidth;
+      const yRatioFl = floorRef.current.clientHeight;
+      setState({
+        ...state,
+        camPoints: initialData.camera.cameraPoints ? getPoints(xRatioCam, yRatioCam, initialData.camera.cameraPoints) : getPoints(xRatioCam, yRatioCam, undefined),
+        floorPlanPoints: initialData.camera.floorPlanPoints ? getPoints(xRatioFl, yRatioFl, initialData.camera.floorPlanPoints) : getPoints(xRatioFl, yRatioFl, undefined)
       });
     }
-    return points;
-  }
-
-  const [camerasValue] = useState(getCamerasPoint());
-
-  useEffect(() => {
-    if (cameraRef.current && camera) {
-      const xRatio = cameraRef.current.clientWidth;
-      const yRatio = cameraRef.current.clientHeight;
-      setCameraPoints(
-        camera && camera.cameraPoints
-          ? getPoints(xRatio, yRatio, camera.cameraPoints)
-          : getPoints(xRatio, yRatio, undefined)
-      );
-    }
-  }, [cameraRef.current, camera]);
-
-  const [floorPlanPoints, setFloorPlanPoints] = useState();
-  useEffect(() => {
-    if (floorRef.current && camera) {
-      const xRatio = floorRef.current.clientWidth;
-      const yRatio = floorRef.current.clientHeight;
-      setFloorPlanPoints(
-        camera && camera.floorPlanPoints
-          ? getPoints(xRatio, yRatio, camera.floorPlanPoints)
-          : getPoints(xRatio, yRatio, undefined)
-      );
-    }
-  }, [floorRef.current, camera]);
-
-  const [floorZoomRate, setFloorZoomRate] = useState(1);
-  const [cameraZoomRate, setCameraZoomRate] = useState(1);
+  }, [cameraRef.current, floorRef.current, initialData.camera]);
 
   const updateCameraPoints = pos => {
-    const newPoints = { ...cameraPoints };
+    const newPoints = state.camPoints;
     newPoints[pos.key] = { x: pos.x, y: pos.y };
-    setCameraPoints({
-      ...newPoints,
+    setState({
+      ...state,
+      camPoints: newPoints
     });
   };
 
   const updateFloorPoints = pos => {
-    const newPoints = { ...floorPlanPoints };
+    const newPoints = state.floorPlanPoints;
     newPoints[pos.key] = { x: pos.x, y: pos.y };
-    setFloorPlanPoints({
-      ...newPoints,
+    setState({
+      ...state,
+      floorPlanPoints: newPoints
     });
   };
 
   const updateCameraZoomRate = rate => {
-    setCameraZoomRate(rate);
+    setState({
+      ...state,
+      cameraZoomRate: rate
+    });
   };
 
   const updateFloorZoomRate = rate => {
-    setFloorZoomRate(rate);
+    setState({
+      ...state,
+      floorZoomRate: rate
+    });
   };
 
   async function savePoints() {
-    if (camera && level) {
-      let cpoints = { ...cameraPoints };
-      let fpoints = { ...floorPlanPoints };
+    if (initialData.camera && initialData.level) {
+      let cpoints = { ...state.camPoints };
+      let fpoints = { ...state.floorPlanPoints };
 
       if (!cameraRef.current || !floorRef.current) {
         // error case
@@ -149,17 +140,17 @@ const HomographyContainer = props => {
         const cameraWidth = cameraRef.current.clientWidth;
         const cameraHeight = cameraRef.current.clientHeight;
 
-        Object.keys(cameraPoints).forEach(item => {
-          cpoints[item].x = parseFloat(cameraPoints[item].x / (cameraWidth * cameraZoomRate));
-          cpoints[item].y = parseFloat(cameraPoints[item].y / (cameraHeight * cameraZoomRate));
+        Object.keys(state.camPoints).forEach(item => {
+          cpoints[item].x = parseFloat(state.camPoints[item].x / (cameraWidth * state.cameraZoomRate));
+          cpoints[item].y = parseFloat(state.camPoints[item].y / (cameraHeight * state.cameraZoomRate));
         });
 
         const floorWidth = floorRef.current.clientWidth;
         const floorHeight = floorRef.current.clientHeight;
 
-        Object.keys(floorPlanPoints).forEach(item => {
-          fpoints[item].x = parseFloat(floorPlanPoints[item].x / (floorWidth * floorZoomRate));
-          fpoints[item].y = parseFloat(floorPlanPoints[item].y / (floorHeight * floorZoomRate));
+        Object.keys(state.floorPlanPoints).forEach(item => {
+          fpoints[item].x = parseFloat(state.floorPlanPoints[item].x / (floorWidth * state.floorZoomRate));
+          fpoints[item].y = parseFloat(state.floorPlanPoints[item].y / (floorHeight * state.floorZoomRate));
         });
       }
 
@@ -172,8 +163,7 @@ const HomographyContainer = props => {
       if (!homography || homography === 'error') {
         // show error
       } else {
-        //homography.homography_points[8] = 1;
-        await updateCameraToSite(siteId, camera, cpoints, fpoints, homography.homography_points);
+        await updateCameraToSite(site._id, initialData.camera, cpoints, fpoints, homography.homography_points);
       }
       // redirect
       props.history.goBack();
@@ -183,17 +173,16 @@ const HomographyContainer = props => {
   function cancelPoints() {
     props.history.goBack();
   }
-
   return (
     <DashboardTemplate>
-      {camera && level ? (
+      {initialData.camera && initialData.level ? (
         <React.Fragment>
           <Row className="m-b-10">
             <Col md={4}>
-              <h4 className="m-l-50">{level && `Level : ${level.name}`}</h4>
+              <h4 className="m-l-50">{initialData.level && `Level : ${initialData.level.name}`}</h4>
             </Col>
             <Col md={4}>
-              <h4 className="m-l-50">{level && `Camera : ${camera.name}`}</h4>
+              <h4 className="m-l-50">{initialData.level && `Camera : ${initialData.camera.name}`}</h4>
             </Col>
             <Col md={4}>
               <div style={{ float: 'right' }}>
@@ -210,33 +199,36 @@ const HomographyContainer = props => {
           <Row>
             <Col md={12}>
               <div ref={floorRef} className={`${styles.plan_floor_height} darvis-border darvis-canvas-wrapper`}>
-                {floorRef.current && camera && level.plan && (
+                {floorRef.current && (
                   <PointCanvas
-                    key={level._id}
-                    points={floorPlanPoints} // points for the floor
-                    camerasPoints={camerasValue} // other cameras points
+                    key={initialData.level._id}
+                    points={state.floorPlanPoints} // points for the floor
+                    camerasPoints={initialData.otherCamerasPoints} // other cameras points
                     updatePoints={updateFloorPoints} // get updated points from canvas
                     updateZoomRate={updateFloorZoomRate} // get zoom rate from canvas
                     canvasWidth={floorRef.current.clientWidth} // initial canvas width
                     canvasHeight={floorRef.current.clientHeight} // initial canvas height
-                    imagePath={ORIGIN + level.plan} // level image path
+                    imagePath={ORIGIN + initialData.level.plan} // level image path
+                    boundId='floorDiv'
                   />
                 )}
               </div>
             </Col>
           </Row>
-          <Row className="m-t-10">
+          <Row className='m-t-10'>
             <Col md={12}>
               <div ref={cameraRef} className={`${styles.plan_camera_height} darvis-border darvis-canvas-wrapper`}>
-                {cameraRef.current && camera && camera.image && (
-                  <PointCanvas
-                    key={camera._id}
-                    points={cameraPoints}
-                    updateZoomRate={updateCameraZoomRate}
+                {cameraRef.current && (
+                  <PointCanvas 
+                    key={initialData.camera._id}
+                    points={state.camPoints}
                     updatePoints={updateCameraPoints}
+                    camerasPoints={undefined}
+                    updateZoomRate={updateCameraZoomRate}
                     canvasWidth={cameraRef.current.clientWidth}
                     canvasHeight={cameraRef.current.clientHeight}
-                    imagePath={ORIGIN + camera.image}
+                    imagePath={ORIGIN + initialData.camera.image}
+                    boundId='cameraDiv'
                   />
                 )}
               </div>
@@ -244,8 +236,8 @@ const HomographyContainer = props => {
           </Row>
         </React.Fragment>
       ) : (
-        <Spinner />
-      )}
+          <Spinner />
+        )}
     </DashboardTemplate>
   );
 };
