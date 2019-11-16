@@ -155,8 +155,8 @@ const HomographyContainer = (props) => {
       }
 
       // points ordering
-      cpoints = getSorted(cpoints);
-      fpoints = getSorted(fpoints);
+      // cpoints = getSorted(cpoints);
+      // fpoints = getSorted(fpoints);
 
       const homography = await getHomography(cpoints, fpoints);
 
