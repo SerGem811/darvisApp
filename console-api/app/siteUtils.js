@@ -14,55 +14,6 @@ function getImageDimensions(file) {
 }
 
 exports.getDataWorldJson = function (site) {
-  var levels = [];
-  var levelDetails = [];
-  site.levels.map((item, i) => {
-    var level = {};
-    var levelDetail = {};
-    level.levelId = item._id;
-    level.cameras = [];
-    const levelCameras = site.cameras.filter(x => x.levelId === item._id);
-    levelCameras.map((cam, j) => {
-      var camera = {
-        number: j + 1,
-        cameraType: cam.type,
-        name: cam.name,
-        url: cam.url,
-        enabled: cam.isActive,
-        user: cam.user,
-        pass: cam.password,
-        cam_res_x: cam.cam_res_x,
-        cam_res_y: cam.cam_res_y,
-        homography: cam.homography,
-        src_points: cam.cameraPoints,
-        dst_points: cam.floorPlanPoints,
-        ai_roi: cam.ai_roi,
-      }
-      level.cameras.push(camera);
-    });
-    levels.push(level);
-
-    levelDetail.levelId = item._id;
-    levelDetail.name = item.name;
-    levelDetail.level = i + 1;
-    levelDetail.plan = config.path + '/levels/' + item.plan.replace('\\uploads\\', '');
-    levelDetail.zones = [];
-    item.zones.map(z => {
-      var zone = {
-        name: z.name,
-        p1x: z.points.p1.x,
-        p1y: z.points.p1.y,
-        p2x: z.points.p2.x,
-        p2y: z.points.p2.y,
-        p3x: z.points.p3.x,
-        p3y: z.points.p3.y,
-        p4x: z.points.p4.x,
-        p4y: z.points.p4.y,
-      };
-      levelDetail.zones.push(zone);
-    });
-    levelDetails.push(levelDetail);
-  });
   var triggers = [];
   site.dwInfo.objects[3].triggers.map(item => {
     var trigger = {};
@@ -86,100 +37,190 @@ exports.getDataWorldJson = function (site) {
     trigger.action = action;
     triggers.push(trigger);
   });
-  lowerSiteName = site.dwInfo.name;
 
+  let cameras = [];
+  site.cameras.map(item => {
+    const cam = {
+      cameraId: item._id,
+      cameraEnabled: item.isActive,
+      displayName: item.name,
+      url: item.url,
+      user: item.user,
+      pass: item.pass,
+      homography: item.homography ? [
+        item.homography.a,item.homography.b,item.homography.c,item.homography.d,item.homography.e,item.homography.f,item.homography.g,item.homography.h,item.homography.i
+      ] : [0,0,0,0,0,0,0,0,1],
+      src_points: item.cameraPoints ? {
+        p1x: item.cameraPoints.p1.x,
+        p1y: item.cameraPoints.p1.y,
+        p2x: item.cameraPoints.p2.x,
+        p2y: item.cameraPoints.p2.y,
+        p3x: item.cameraPoints.p3.x,
+        p3y: item.cameraPoints.p3.y,
+        p4x: item.cameraPoints.p4.x,
+        p4y: item.cameraPoints.p4.y
+      } : {},
+      dst_points: item.floorPlanPoints ? {
+        p1x: item.floorPlanPoints.p1.x,
+        p1y: item.floorPlanPoints.p1.y,
+        p2x: item.floorPlanPoints.p2.x,
+        p2y: item.floorPlanPoints.p2.y,
+        p3x: item.floorPlanPoints.p3.x,
+        p3y: item.floorPlanPoints.p3.y,
+        p4x: item.floorPlanPoints.p4.x,
+        p4y: item.floorPlanPoints.p4.y
+      } : {},
+      frame_width: item.cam_res_x,
+      frame_height: item.cam_res_y,
+      frames_per_second: 60,
+    }
+    cameras.push(cam);
+  });
+
+  lowerSiteName = site.dwInfo.name;
+  let aiClasses = [];
+  site.ai.classes.map(item => {
+    aiClasses.push(item.className);
+  });
   return {
-    dataworldId: site.dwInfo._id,
-    //version: 3,
-    //revision: 5,
-    //dwType: site.structure.dwType,
-    dataworldName: lowerSiteName,
-    site_name: site.name,
-    owner: site.owner,
-    //darvisType: site.structure.darvisType,
+    clientId: site.dwInfo._id,
+    schemaVersion: site.dwInfo.version,
+    revision: site.dwInfo.revision,
     createdOn: site.created,
-    viewers: site.dwInfo.viewers,
-    dataSources: [
+    lastUpdatedOn: new Date(),
+    siteName: lowerSiteName,
+    sitePlanUrl: 'Floorplan url',
+    inputs: [
       {
-        name: lowerSiteName,
-        ai: site.ai,
-        data: site.data,
-        levels: levels,
+        inputType: 'camera',
+        tableName: 'rawcameradata',
+        payloadFormat: 'json',
+        ai: {
+          version: site.ai.version,
+          classes: aiClasses
+        },
+        inputSchema: [
+          {
+            name: 'camera_id',
+            type: 'string'
+          },
+          {
+            name: 'frame_timestamp',
+            type: 'string'
+          },
+          {
+            name: 'class',
+            type: 'string'
+          },
+          {
+            name: 'top',
+            type: 'int'
+          },
+          {
+            name: 'left',
+            type: 'int'
+          },
+          {
+            name: 'bottom',
+            type: 'int'
+          },
+          {
+            name: 'right',
+            type: 'int'
+          },
+          {
+            name: 'frame_id',
+            type: 'string'
+          },
+          {
+            name: 'confidence',
+            type: 'float'
+          }
+        ],
+        sensors: cameras,
       }
     ],
-    dataObjects: [
+    outputs: [
       {
-        // level details 
-        // object tyep building
-        objectId: site.dwInfo.objects[0].objectId,
-        objType: site.dwInfo.objects[0].objType,
-        levels: levelDetails.length,
-        levelDetails: levelDetails,
-      },
-      {
-        // mapping
-        // datapoint
-        objectId: site.dwInfo.objects[1].objectId,
-        objType: site.dwInfo.objects[1].objType,
-        objParent: site._id,
-        objPositioning: 'inOtherObject',
-        refreshData: true,
-        floorUrls: [],
-        name: 'beds',
-        mappings: [
+        outputId: site.dwInfo.objects[1].objectId,
+        outputType: site.dwInfo.objects[1].objType,
+        displayName: 'beds',
+        outputSchema: [
           {
-            src: lowerSiteName + '.id',
-            dst: 'instance'
+            src: "rawcameradata.camera_id",
+            dst: "camera_id"
           },
           {
-            src: lowerSiteName + '.loc_x',
-            dst: 'loc_x'
+            src: "CONFIG_LOOKUP(rawcameradata.camera_id, inputs.sensors.cameraId, inputs.sensors.displayName)",
+            dst: "camera_name"
           },
           {
-            src: lowerSiteName + '.loc_y',
-            dst: 'loc_y'
+            src: "rawcameradata.frame_timestamp",
+            dst: "timestamp"
           },
           {
-            src: lowerSiteName + '.camera_id',
-            dst: 'camera_id'
+            src: "rawcameradata.class",
+            dst: "class"
           },
           {
-            src: lowerSiteName + '.camera_name',
-            dst: 'camera_name'
+            src: "homography.loc_x",
+            dst: "loc_x"
           },
           {
-            src: lowerSiteName + '.frame_timestamp',
-            dst: 'timestamp'
+            src: "homography.loc_y",
+            dst: "loc_y"
           },
           {
-            src: lowerSiteName + '.lasttime',
-            dst: 'lasttime'
+            src: "rawcameradata.frame_id",
+            dst: "frame_id"
           },
           {
-            src: lowerSiteName + '.object_type',
-            dst: 'target'
-          },
-          {
-            src: lowerSiteName + '.[lookup_levels]',
-            dst: 'level'
+            src: "rawcameradata.confidence",
+            dst: "confidence"
           }
         ]
       },
       {
-        // kpi
-        objectId: site.dwInfo.objects[2].objectId,
-        objType: site.dwInfo.objects[2].objType,
+        outputid: site.dwInfo.objects[2].objectId,
+        outputType: site.dwInfo.objects[2].objType,
         kpis: site.dwInfo.objects[2].kpis,
-      },
-      {
-        // trigger
-        objectId: site.dwInfo.objects[3].objectId,
-        objType: site.dwInfo.objects[3].objType,
-        triggers: triggers
+        triggers: site.dwInfo.objects[3].triggers
       }
     ],
-    lookups: site.dwInfo.lookups,
-    localTimezone: site.dwInfo.localTimezone
+    translators: [
+      {
+        transType: 'HOMOGRAPHY',
+        input: [
+          {
+            "translator": "top",
+            "source": "rawcameradata.top"
+          },
+          {
+            "translator": "left",
+            "source": "rawcameradata.left"
+          },
+          {
+            "translator": "bottom",
+            "source": "rawcameradata.bottom"
+          },
+          {
+            "translator": "right",
+            "source": "rawcameradata.right"
+          }
+        ],
+        outputName: 'homography',
+        output: [
+          {
+            "translator": "loc_x",
+            "object": "loc_x"
+          },
+          {
+            "translator": "loc_y",
+            "object": "loc_y"
+          }
+        ]
+      }
+    ],
   }
 };
 
@@ -511,7 +552,7 @@ exports.deleteCamera = function (site, cameraId) {
   });
 };
 
-exports.addKPIs = function(site, kpis) {
+exports.addKPIs = function (site, kpis) {
   return new Promise((resolve, reject) => {
     if (site) {
       kpis.forEach(item => {
@@ -669,44 +710,44 @@ exports.generateAI = function () {
 exports.generateAIData = function () {
   return ([
     {
-      "src": "object_id",
-      "dst": "object_id",
+      src: "object_id",
+      dst: "object_id",
       "use": true,
       "fieldType": "string"
     },
     {
-      "src": "camera_id",
-      "dst": "camera_id",
+      src: "camera_id",
+      dst: "camera_id",
       "use": true,
       "fieldType": "string"
     },
     {
-      "src": "camera_name",
-      "dst": "camera_name",
+      src: "camera_name",
+      dst: "camera_name",
       "use": true,
       "fieldType": "string"
     },
     {
-      "src": "timestamp",
-      "dst": "timestamp",
+      src: "timestamp",
+      dst: "timestamp",
       "use": true,
       "fieldType": "string"
     },
     {
-      "src": "object_type",
-      "dst": "object_type",
+      src: "object_type",
+      dst: "object_type",
       "use": true,
       "fieldType": "string"
     },
     {
-      "src": "loc_x",
-      "dst": "loc_x",
+      src: "loc_x",
+      dst: "loc_x",
       "use": true,
       "fieldType": "float"
     },
     {
-      "src": "loc_y",
-      "dst": "loc_y",
+      src: "loc_y",
+      dst: "loc_y",
       "use": true,
       "fieldType": "float"
     }
