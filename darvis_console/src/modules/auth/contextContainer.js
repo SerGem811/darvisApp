@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { withRouter } from 'react-router';
 
 import { AuthContextProvider } from './authContext';
-import { AUTH_PAGE, LOGGED_IN_HOME, EXPLORE_PAGE } from '../../config';
+import { AUTH_PAGE, LOGGED_IN_HOME, EXPLORE_PAGE, ORIGINHOST } from '../../config';
 import { authenticate as callAuth } from '../../shared/services/auth';
 import { getSitesbyUser as callSite, isRegistered as checkRegistrationService } from '../../shared/services/sites';
 import ErrorContext from '../../shared/modules/error/context';
@@ -46,7 +46,10 @@ const AuthContextContainer = ({ history, children }) => {
         if(user.data.role.name === ROLES.EDITOR) {
           history.push(EXPLORE_PAGE);
         } else if(user.data.role.name === ROLES.VIEWER) {
-          history.push(EXPLORE_PAGE);
+          //history.push(EXPLORE_PAGE);
+          // relocate to the 5000
+          window.location.href = ORIGINHOST + ':5000';
+
         } else {
           history.push(LOGGED_IN_HOME);
         }

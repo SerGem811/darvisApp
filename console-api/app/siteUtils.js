@@ -14,9 +14,9 @@ function getImageDimensions(file) {
 }
 
 exports.getDataWorldJson = function (site) {
-  var triggers = [];
+  let triggers = [];
   site.dwInfo.objects[3].triggers.map(item => {
-    var trigger = {};
+    let trigger = {};
     trigger.id = item._id
     trigger.name = item.name;
     trigger.condition = item.condition;
@@ -36,6 +36,18 @@ exports.getDataWorldJson = function (site) {
     }
     trigger.action = action;
     triggers.push(trigger);
+  });
+
+  let kpis = [];
+  site.dwInfo.objects[2].kpis.map(item => {
+    let kpi = {
+      name: item.name,
+      kpiType: item.type,
+      intervalSeconds: item.interval,
+      classField: 'rawcameradata.class',
+      classes: [item.object]
+    };
+    kpis.push(kpi);
   });
 
   let cameras = [];
@@ -183,7 +195,7 @@ exports.getDataWorldJson = function (site) {
       {
         outputid: site.dwInfo.objects[2].objectId,
         outputType: site.dwInfo.objects[2].objType,
-        kpis: site.dwInfo.objects[2].kpis,
+        kpis: kpis,
         triggers: site.dwInfo.objects[3].triggers
       }
     ],

@@ -108,7 +108,7 @@ const Routes = () => (
       {SAdminRoutes.map(renderRouteFromList(true, [ROLES.GOD, ROLES.ADMIN]))}
       {SiteRoutes.map(renderRouteFromList(true, [ROLES.OWNER, ROLES.MANAGER]))}
       {HomographyRoutes.map(renderRouteFromList(true, [ROLES.OWNER, ROLES.MANAGER]))}
-      {ExploreRoutes.map(renderRouteFromList(true, [ROLES.OWNER, ROLES.VIEWER, ROLES.MANAGER, ROLES.EDITOR]))}
+      {ExploreRoutes.map(renderRouteFromList(true, [ROLES.OWNER, ROLES.MANAGER, ROLES.EDITOR]))}
       {AnalyticsRoutes.map(renderRouteFromList(true, [ROLES.OWNER, ROLES.MANAGER, ROLES.EDITOR]))}
       {UsersRoutes.map(renderRouteFromList(true, [ROLES.OWNER, ROLES.MANAGER]))}
       {CamerasRoutes.map(renderRouteFromList(true, [ROLES.OWNER, ROLES.MANAGER]))}

@@ -65,12 +65,11 @@ const ConfigContainer = ({ history }) => {
             kpis.push({
               name: 'Number of ' + item.className,
               type: 'count',
-              interval: 'day',
+              interval: 1,
               object: item.className,
               where: 'all'
             })
           ));
-          console.log(kpis);
 
           await addKPIsService(prem.site._id, kpis);
 

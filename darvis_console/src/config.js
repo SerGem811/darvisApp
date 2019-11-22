@@ -1,3 +1,4 @@
+export const ORIGINHOST = 'http://3.15.155.228';
 export const ORIGIN = 'http://3.15.155.228:8000';
 
 export const CAMERA_API = 'http://3.15.155.228:8086/api/getSingleFrame';

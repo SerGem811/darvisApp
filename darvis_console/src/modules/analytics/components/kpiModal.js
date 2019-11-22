@@ -25,10 +25,9 @@ const KPIModal = ({ kpi, site, addKPI, updateKPI, dismiss }) => {
       { label: 'Changing state', value: 'state_change' }
     ],
     interval: [
-      { label: 'second', value: 'second' },
-      { label: 'minute', value: 'minute' },
-      { label: 'hour', value: 'hour' },
-      { label: 'day', value: 'day' },
+      { label: 'second', value: 1 },
+      { label: 'minute', value: 60 },
+      { label: 'hour', value: 3600 },
     ],
     zl: [],
   });
@@ -60,7 +59,7 @@ const KPIModal = ({ kpi, site, addKPI, updateKPI, dismiss }) => {
   }, [site]);
   const [formData, setFormData] = useState({
     name: '',
-    interval: 'hour',
+    interval: 60,
     type: 'count',
     object: '',
     attribute: '',
@@ -74,7 +73,7 @@ const KPIModal = ({ kpi, site, addKPI, updateKPI, dismiss }) => {
   useEffect(() => {
     setFormData({
       name: kpi ? kpi.name : '',
-      interval: kpi ? kpi.interval : 'hour',
+      interval: kpi ? kpi.interval : 60,
       type: kpi ? kpi.type : 'count',
       object: kpi ? kpi.object : '',
       attribute: kpi ? kpi.attribute : '',
