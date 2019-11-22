@@ -693,12 +693,26 @@ exports.generateAI = function () {
     classes: [
       {
         "classId": 1,
-        "className": "bed",
-        "attributes": [
-          "clean",
-          "unclean",
-          "occupied"
-        ],
+        "className": "cleaned_bed",
+        "attributes": [],
+        "states": [
+          "fixed",
+          "moving"
+        ]
+      },
+      {
+        "classId": 2,
+        "className": "uncleaned_bed",
+        "attributes": [],
+        "states": [
+          "fixed",
+          "moving"
+        ]
+      },
+      {
+        "classId": 3,
+        "className": "occupied_bed",
+        "attributes": [],
         "states": [
           "fixed",
           "moving"
@@ -707,10 +721,7 @@ exports.generateAI = function () {
       {
         "classId": 2,
         "className": "person",
-        "attributes": [
-          "male",
-          "female"
-        ],
+        "attributes": [],
         "states": [
           "fixed",
           "moving"
